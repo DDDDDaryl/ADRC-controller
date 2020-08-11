@@ -1,0 +1,213 @@
+//
+// Created by Frank Young on 2020/3/29.
+//
+#include "protocol.h"
+//#include <stdint.h>
+#include "objects.h"
+#include <vector>
+using namespace std;
+
+class control_system;
+
+struct ID_func{
+    explicit ID_func(uint8_t dft = 0, uint8_t (*flag)(const uint8_t&) = nullptr, float (*data)(const float&) = nullptr){
+        //ID = dft;
+        func_ptr_flag = flag;
+        func_ptr_data = data;
+    }
+    //uint8_t ID;
+    uint8_t (*func_ptr_flag)(const uint8_t&);
+    float (*func_ptr_data)(const float&);
+};
+
+class communication_protocol{
+private:
+    struct  ID_hash_table;
+    struct  IC_MESSAGE;
+    struct  PC_MESSAGE;
+    union   transit;
+    static uint16_t rec_buf_size;
+    static vector<uint8_t>::iterator it_IC_r;
+    static vector<uint8_t>::iterator it_PC_r;
+    static vector<uint8_t>::iterator it_PC_s;
+    static vector<uint8_t> IC_rec_buf;
+    static vector<uint8_t> PC_rec_buf;
+    static vector<uint8_t> PC_send_buf;
+    static bool IC_parse_flag;
+    static bool PC_parse_flag;
+    
+
+public:
+//    communication_protocol();
+    static bool            ID_hash_table_init();
+    static uint8_t         IC_rec_buf_write(const uint8_t& Res, uint16_t USART_RX_STA);
+    static uint8_t         PC_rec_buf_write(const uint8_t& Res, uint16_t USART_RX_STA);
+    static uint8_t         PC_send_buf_write(const uint8_t& data);
+    static bool            set_IC_parse_flag(const bool& stat);
+    static bool            set_PC_parse_flag(const bool& stat);
+    static bool            get_IC_parse_flag();
+    static bool            get_PC_parse_flag();
+    static float           parse_IC_msg();
+    static bool            parse_PC_msg();
+    static void init();
+
+    static uint8_t         C__PC_rec_buf_write(const uint8_t& Res, uint16_t USART_RX_STA);
+    static uint8_t         C__IC_rec_buf_write(const uint8_t& Res, uint16_t USART_RX_STA);
+    static uint8_t         C__PC_send_buf_write(const uint8_t& data);
+    static bool            C__set_IC_parse_flag(const bool& stat);
+    static bool            C__set_PC_parse_flag(const bool& stat);
+
+};
+
+uint16_t communication_protocol::rec_buf_size = 200;
+vector<uint8_t> communication_protocol::IC_rec_buf(200);
+vector<uint8_t> communication_protocol::PC_rec_buf(200);
+vector<uint8_t> communication_protocol::PC_send_buf(200);
+vector<uint8_t>::iterator communication_protocol::it_IC_r = IC_rec_buf.begin();
+vector<uint8_t>::iterator communication_protocol::it_PC_r = PC_rec_buf.begin();
+vector<uint8_t>::iterator communication_protocol::it_PC_s = PC_send_buf.begin();
+
+struct communication_protocol::ID_hash_table{
+    static ID_func leaf;
+    static vector<ID_func> ID_tree;
+    //static ID_func& ID_trace(uint8_t ID);
+};
+
+inline bool communication_protocol::get_IC_parse_flag() {
+    return IC_parse_flag;
+}
+inline bool communication_protocol::get_PC_parse_flag() {
+    return PC_parse_flag;
+}
+inline bool communication_protocol::set_IC_parse_flag(const bool& stat) {
+    return IC_parse_flag = stat;
+}
+inline bool communication_protocol::set_PC_parse_flag(const bool &stat) {
+    return PC_parse_flag = stat;
+}
+inline uint8_t communication_protocol::IC_rec_buf_write(const uint8_t& Res, uint16_t USART_RX_STA) {
+    return IC_rec_buf[USART_RX_STA&0X3FFFu] = Res;
+}
+inline uint8_t communication_protocol::PC_rec_buf_write(const uint8_t& Res, uint16_t USART_RX_STA) {
+    return PC_rec_buf[USART_RX_STA&0X3FFFu] = Res;
+}
+
+void communication_protocol::init() {
+    rec_buf_size = 200;
+    IC_rec_buf.resize(rec_buf_size);
+    PC_rec_buf.resize(rec_buf_size);
+    PC_send_buf.resize(rec_buf_size);
+    it_IC_r = IC_rec_buf.begin();
+    it_PC_r = PC_rec_buf.begin();
+    it_PC_s = PC_send_buf.begin();
+}
+
+ID_func communication_protocol::ID_hash_table::leaf{0, nullptr, nullptr};
+vector<ID_func> communication_protocol::ID_hash_table::ID_tree(256, leaf);
+bool communication_protocol::IC_parse_flag = false;
+bool communication_protocol::PC_parse_flag = false;
+
+struct communication_protocol::IC_MESSAGE{
+    uint8_t body_length;
+    float   reference;
+    explicit IC_MESSAGE(uint8_t length = 0, float ref = 0){
+        body_length = length;
+        reference = ref;
+    }
+};
+
+struct communication_protocol::PC_MESSAGE{
+    uint8_t body_length;
+    explicit PC_MESSAGE(uint8_t length = 0){
+        body_length = length;
+    }
+};
+
+union communication_protocol::transit{
+    float d{0};
+    uint8_t data[4];
+    explicit transit(float ini = 0){
+        d = ini;
+    }
+};
+
+//communication_protocol::communication_protocol() {
+//    rec_buf_size = 200;
+//    IC_rec_buf.resize(rec_buf_size);
+//    PC_rec_buf.resize(rec_buf_size);
+//    PC_send_buf.resize(rec_buf_size);
+//    it_IC_r = IC_rec_buf.begin();
+//    it_PC_r = PC_rec_buf.begin();
+//    it_PC_s = PC_send_buf.begin();
+//}
+
+uint8_t communication_protocol::PC_send_buf_write(const uint8_t& data) {
+    return 0;
+}
+
+float communication_protocol::parse_IC_msg() {
+    auto *p_msg = new IC_MESSAGE();
+    auto *p_tmp = new transit();
+    p_msg->body_length = *it_IC_r;
+    for(uint8_t& p : p_tmp->data){
+        p = *++it_IC_r;
+    }
+    return control_system::update_reference(p_tmp->d);
+}
+/*默认解析来自PC的参数调试数据时停止控制
+ * 若收到数据时系统为停止运行状态，只需调整参数；
+ * 若收到数据时系统为正在运行状态，须在设置参数后停止运行，并重新执行控制器初始化
+ * 系统停止运行后，只需将system_state用协议置1即可恢复运行状态*/
+bool communication_protocol::parse_PC_msg() {
+    control_system::set_system_state(false);
+    auto *p_msg = new PC_MESSAGE();
+    auto *p_tmp = new transit();
+    p_msg->body_length = *it_PC_r; //data length(self included)
+    uint8_t ID_tmp = 0;
+
+    for(uint8_t i=1; i<p_msg->body_length; ++i){
+        ID_tmp = *++it_PC_r;
+        if(ID_tmp & 0x80u){
+            for(uint8_t & j : p_tmp->data){
+                j = *++it_PC_r;
+                ++i;
+            }
+            printf("ID_tmp = %#04x, data = %1.2f\r\n", ID_tmp, ID_hash_table::ID_tree[ID_tmp].func_ptr_data(p_tmp->d) );
+        }
+        else{
+            ID_hash_table::ID_tree[ID_tmp].func_ptr_flag(*++it_PC_r);
+            ++i;
+            printf("ID_tmp = %#04x, data = %#04x\r\n", ID_tmp, ID_hash_table::ID_tree[ID_tmp].func_ptr_flag(*it_PC_r) );
+        }
+    }
+    return true;
+}
+
+
+
+bool communication_protocol::ID_hash_table_init() {
+
+    communication_protocol::ID_hash_table::ID_tree[0x09].func_ptr_flag = &control_system::set_system_state;
+    communication_protocol::ID_hash_table::ID_tree[0x0A].func_ptr_flag = &control_system::set_Is_close_loop;
+    communication_protocol::ID_hash_table::ID_tree[0x0B].func_ptr_flag = &control_system::set_controller_type;
+    communication_protocol::ID_hash_table::ID_tree[0x0C].func_ptr_flag = &control_system::set_open_loop_input_type;
+    communication_protocol::ID_hash_table::ID_tree[0x8C].func_ptr_data = &control_system::set_Sample_Rate_Hz;
+    communication_protocol::ID_hash_table::ID_tree[0x8D].func_ptr_data = &control_system::set_Sample_Rate_of_Sensor_Hz;
+    communication_protocol::ID_hash_table::ID_tree[0x0E].func_ptr_flag = &control_system::set_run_time;
+    communication_protocol::ID_hash_table::ID_tree[0x91].func_ptr_data = &control_system::set_LADRC_wc;
+    communication_protocol::ID_hash_table::ID_tree[0x92].func_ptr_data = &control_system::set_LADRC_wo;
+    communication_protocol::ID_hash_table::ID_tree[0x93].func_ptr_data = &control_system::set_LADRC_b0;
+    communication_protocol::ID_hash_table::ID_tree[0x94].func_ptr_data = &control_system::set_LADRC_wc_bar;
+    communication_protocol::ID_hash_table::ID_tree[0x99].func_ptr_data = &control_system::set_PID_Kp;
+    communication_protocol::ID_hash_table::ID_tree[0x9A].func_ptr_data = &control_system::set_PID_Ki;
+    communication_protocol::ID_hash_table::ID_tree[0x9B].func_ptr_data = &control_system::set_PID_Kd;
+    communication_protocol::ID_hash_table::ID_tree[0xB1].func_ptr_data = &control_system::set_open_loop_input_sine_amp;
+    communication_protocol::ID_hash_table::ID_tree[0xB2].func_ptr_data = &control_system::set_open_loop_input_sine_freq;
+    communication_protocol::ID_hash_table::ID_tree[0xB9].func_ptr_data = &control_system::set_open_loop_input_step_amp;
+    communication_protocol::ID_hash_table::ID_tree[0xBA].func_ptr_data = &control_system::set_open_loop_input_step_time;
+    communication_protocol::ID_hash_table::ID_tree[0xC9].func_ptr_data = &control_system::set_deadzone_compensation_dac1;
+    communication_protocol::ID_hash_table::ID_tree[0xD1].func_ptr_data = &control_system::set_deadzone_compensation_dac2;
+
+    return true;
+}
+

@@ -1,0 +1,45 @@
+coding in UTF-8
+
+以下记录工程中协议格式，并在onenote中同步。
+
+Ver.2.0
+/*为了方便后期协议的更新时代码修改，加入一个datatype map，用于指示协议中*/
+
+工控机-单片机通信
+------------------------------------------------------------------------------------
+Header    | body_length |   reference   |   reserved    |   tail
+0xeb 0x90 | 8-bit       |   32-bit      |               |   0x0d 0x0a
+
+调试上位机-单片机通信
+------------------------------------------------------------------------------------
+Header    | body_length |   ID  |   data    |   ID  |   data    |   ... |   tail
+0xeb 0x90 | 8-bit       |8-bit  |   8/32-bit|8-bit  |   8/32-bit|   ... |   0x0d 0x0a
+
+ID命名规则：
+        第一级	    第二级	        第三级	                                    第四级
+内容	整形/浮点	软件/硬件参数	软件参数：系统运行参数/LADRC/PID/…控制算法分类	参数顺序排列
+				                    硬件参数：ADC/DAC1/DAC2外设分类
+长度	1bit	    1bit	        3bit	                                    3bit
+
+参数及其ID映射表
+	Parameter name	            ID	            Remark
+	sys_running_state	        0 0 00, 1 001	0x09
+	Is_close_loop	            0 0 00, 1 010	0x0A
+	controller_type	            0 0 00, 1 011	0x0B
+	open_loop_input_type	    0 0 00, 1 100	0x0C
+	Sample_Rate_Hz	            1 0 00, 1 100	0x8C
+	Sample_Rate_of_Sensor_Hz	1 0 00, 1 101	0x8D
+	run_time	                0 0 00, 1 110	0x0E
+	LADRC_wc	                1 0 01, 0 001	0x91
+	LADRC_wo	                1 0 01, 0 010	0x92
+	LADRC_b0	                1 0 01, 0 011	0x93
+	LADRC_wc_bar	            1 0 01, 0 100	0x94
+	PID_Kp	                    1 0 01, 1 001	0x99
+	PID_Ki	                    1 0 01, 1 010	0x9A
+	PID_Kd	                    1 0 01, 1 011	0x9B
+	open_loop_input_sine_amp	1 0 11, 0 001	0xB1
+	open_loop_input_sine_freq	1 0 11, 0 010	0xB2
+	open_loop_input_step_amp	1 0 11, 1 001	0xB9
+	open_loop_input_step_time	1 0 11, 1 010	0xBA
+	deadzone_compensation_dac1	1 1 00, 1 001	0xC9
+	deadzone_compensation_dac2	1 1 01, 0 001	0xD1

@@ -1,0 +1,125 @@
+/*coding in GBK*/
+
+#include <chrono>
+#include "protocol.h"
+#include "objects.h"
+#include "usart.h"
+#include "sys.h"
+#include "delay.h"
+#include "led.h"
+#include "key.h"
+#include "adc.h"
+#include "dac.h"
+
+using namespace std;
+using namespace chrono;
+
+extern u16 USART_RX_STA;
+extern u8  Tim2Flag;
+
+int main(){
+/*----------------------类实例化-----------------------*/
+    control_system sys;
+
+    C__init();
+    C__ID_hash_table_init();
+
+    ESO ESO_3rd(3);
+    ESO_3rd.LADRC_based_current_DESO_init();
+
+    controller ctrl;
+    ctrl.Parameter_init(ctrl);
+/*----------------------各外设初始化-----------------------*/
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);//设置系统中断优先级分组2
+	delay_init(168);		//延时初始化
+	uart_init(115200);	//串口初始化波特率为115200
+	USART2_Init(115200);
+	MCU1UART_DMA_cinfig();                         //串口DMA通信初始化
+
+	LED_Init();		  		//初始化与LED连接的硬件接口
+	KEY_Init();       //初始化与按键连接的硬件接口
+
+	Adc_Init(); 				//adc初始化
+	Dac1_Init();		 		//DAC通道1初始化
+	Dac2_Init();		 		//DAC通道1初始化
+	DAC_TIM_Config();
+
+	DAC_SetChannel1Data(DAC_Align_12b_R,0);//初始值为0
+	DAC_SetChannel2Data(DAC_Align_12b_R,0);//初始值为0
+
+    while(true){//之后改成1
+    /*---------------------------串口接收数据解析----------------------------*/
+        if(C__get_PC_parse_flag() == true){
+            USART_RX_STA = 0;
+            C__set_PC_parse_flag(false);
+            C__parse_PC_msg();
+        }
+        while(control_system::get_system_state() ){//系统运行中
+            /*---------------------------串口接收数据解析---------------------------*/
+            if(C__get_PC_parse_flag() == true){                
+                printf("PC Message received.\r\n");
+                USART_RX_STA = 0;
+                C__set_PC_parse_flag(false);
+                C__parse_PC_msg();
+                
+                continue;
+            }
+
+            if(C__get_IC_parse_flag()){//直接更新reference
+                printf("IC Message received.\r\n");
+                USART_RX_STA = 0;
+                C__set_IC_parse_flag(false);
+                printf("reference = %#1.0f\r\n", C__parse_IC_msg());
+                //C__parse_IC_msg();
+            }
+            if(Tim2Flag==1)
+                {
+                switch (control_system::get_Is_close_loop()){
+                    case closed_loop:{
+
+                        switch(control_system::get_controller_type()){
+                            case LADRC:{
+    //                            /*-------------------------------测试部分---------------------------*/
+    //                            auto start = system_clock::now();
+    //                            /*-----------------------------测试区底部---------------------------*/
+                                float u = control_system::update_control_signal_V(ctrl.Iterate(ESO::get_output(), control_system::get_reference())[0][0]);
+                                ESO_3rd.Iterate();//得到当前输出
+                                //printf("Control Signal = %#1.1f\r\n", u);
+                                /*-------------------------------测试部分---------------------------*/
+    //                            auto end   = system_clock::now();
+    //                            auto duration = duration_cast<microseconds>(end - start);
+    //                            printf("%f us spent.\r\n", double(duration.count()));
+                                /*-----------------------------测试区底部---------------------------*/
+                                break;
+                            }
+                            case PID:{
+                                break;
+                            }
+                        }//switch(sys.get_controller_type())
+                        break;
+                    }//case closed_loop:
+                    case open_loop:{
+
+                        switch(control_system::get_open_loop_input_type()){
+                            case sine:{
+                                break;
+                            }
+                            case step:{
+                                break;
+                            }
+                        }//switch(sys.get_open_loop_input_type())
+                        break;
+                    }//case open_loop:
+                }//switch (sys.get_Is_close_loop())
+            }
+        }//while(sys.get_system_state() )
+        /*------------------重新初始化控制器----------------*/
+        //printf("System running stopped.");
+    }//while(1)
+
+}
+
+
+
+
+

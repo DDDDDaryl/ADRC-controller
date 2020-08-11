@@ -1,0 +1,139 @@
+//
+// Created by Frank Young on 2020/3/27.
+//
+
+#ifndef __PROTOCOL_H
+#define __PROTOCOL_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void Utils_func();
+size_t Utils2_func(wchar_t* data, size_t size);
+
+#ifdef __cplusplus
+}
+#endif
+
+
+//#include <stdint.h>
+#include "objects.h"
+#include <vector>
+using namespace std;
+
+class control_system;
+
+struct ID_func{
+    explicit ID_func(uint8_t dft = 0, uint8_t (*flag)(const uint8_t&) = nullptr, float (*data)(const float&) = nullptr){
+        //ID = dft;
+        func_ptr_flag = flag;
+        func_ptr_data = data;
+    }
+    //uint8_t ID;
+    uint8_t (*func_ptr_flag)(const uint8_t&);
+    float (*func_ptr_data)(const float&);
+};
+
+class communication_protocol{
+private:
+    struct  ID_hash_table;
+    struct  IC_MESSAGE;
+    struct  PC_MESSAGE;
+    union   transit;
+    static uint16_t rec_buf_size;
+    static vector<uint8_t>::iterator it_IC_r;
+    static vector<uint8_t>::iterator it_PC_r;
+    static vector<uint8_t>::iterator it_PC_s;
+    static vector<uint8_t> IC_rec_buf;
+    static vector<uint8_t> PC_rec_buf;
+    static vector<uint8_t> PC_send_buf;
+    static bool IC_parse_flag;
+    static bool PC_parse_flag;
+    
+
+public:
+//    communication_protocol();
+    static bool            ID_hash_table_init();
+    static uint8_t         IC_rec_buf_write(const uint8_t& Res, uint16_t USART_RX_STA);
+    static uint8_t         PC_rec_buf_write(const uint8_t& Res, uint16_t USART_RX_STA);
+    static uint8_t         PC_send_buf_write(const uint8_t& data);
+    static bool            set_IC_parse_flag(const bool& stat);
+    static bool            set_PC_parse_flag(const bool& stat);
+    static bool            get_IC_parse_flag();
+    static bool            get_PC_parse_flag();
+    static float           parse_IC_msg();
+    static bool            parse_PC_msg();
+    static void init();
+
+    static uint8_t         C__PC_rec_buf_write(const uint8_t& Res, uint16_t USART_RX_STA);
+    static uint8_t         C__IC_rec_buf_write(const uint8_t& Res, uint16_t USART_RX_STA);
+    static uint8_t         C__PC_send_buf_write(const uint8_t& data);
+    static bool            C__set_IC_parse_flag(const bool& stat);
+    static bool            C__set_PC_parse_flag(const bool& stat);
+
+};
+
+uint16_t communication_protocol::rec_buf_size = 200;
+vector<uint8_t> communication_protocol::IC_rec_buf(200);
+vector<uint8_t> communication_protocol::PC_rec_buf(200);
+vector<uint8_t> communication_protocol::PC_send_buf(200);
+vector<uint8_t>::iterator communication_protocol::it_IC_r = IC_rec_buf.begin();
+vector<uint8_t>::iterator communication_protocol::it_PC_r = PC_rec_buf.begin();
+vector<uint8_t>::iterator communication_protocol::it_PC_s = PC_send_buf.begin();
+
+struct communication_protocol::ID_hash_table{
+    static ID_func leaf;
+    static vector<ID_func> ID_tree;
+    //static ID_func& ID_trace(uint8_t ID);
+};
+
+inline bool communication_protocol::get_IC_parse_flag() {
+    return IC_parse_flag;
+}
+inline bool communication_protocol::get_PC_parse_flag() {
+    return PC_parse_flag;
+}
+inline bool communication_protocol::set_IC_parse_flag(const bool& stat) {
+    return IC_parse_flag = stat;
+}
+inline bool communication_protocol::set_PC_parse_flag(const bool &stat) {
+    return PC_parse_flag = stat;
+}
+inline uint8_t communication_protocol::IC_rec_buf_write(const uint8_t& Res, uint16_t USART_RX_STA) {
+    return IC_rec_buf[USART_RX_STA&0X3FFFu] = Res;
+}
+inline uint8_t communication_protocol::PC_rec_buf_write(const uint8_t& Res, uint16_t USART_RX_STA) {
+    return PC_rec_buf[USART_RX_STA&0X3FFFu] = Res;
+}
+
+void communication_protocol::init() {
+    rec_buf_size = 200;
+    IC_rec_buf.resize(rec_buf_size);
+    PC_rec_buf.resize(rec_buf_size);
+    PC_send_buf.resize(rec_buf_size);
+    it_IC_r = IC_rec_buf.begin();
+    it_PC_r = PC_rec_buf.begin();
+    it_PC_s = PC_send_buf.begin();
+}
+
+extern "C"{
+    inline uint8_t communication_protocol::C__PC_rec_buf_write(const uint8_t& Res, uint16_t USART_RX_STA){
+        return PC_rec_buf_write(Res, USART_RX_STA);
+    }
+    inline uint8_t communication_protocol::C__IC_rec_buf_write(const uint8_t &Res, uint16_t USART_RX_STA) {
+        return IC_rec_buf_write(Res, USART_RX_STA);
+    }
+    inline uint8_t communication_protocol::C__PC_send_buf_write(const uint8_t &data) {
+        return PC_send_buf_write(data);
+    }
+    inline bool communication_protocol::C__set_IC_parse_flag(const bool &stat) {
+        return set_IC_parse_flag(stat);
+    }
+    inline bool communication_protocol::C__set_PC_parse_flag(const bool &stat) {
+        return set_PC_parse_flag(stat);
+    }
+}
+
+
+#endif //WEEDER_CONTROLLER_PROTOCOL_H
