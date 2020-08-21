@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select />
+  </component>
+  <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
+    <generated />
+  </component>
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" />
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="a6dc9b58-7b28-4504-988c-7d6483de2bea" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Matrix.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Matrix.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/USART.uvguix.Frank Young" beforeDir="false" afterPath="$PROJECT_DIR$/USART.uvguix.Frank Young" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/USART.uvoptx" beforeDir="false" afterPath="$PROJECT_DIR$/USART.uvoptx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/USART.uvprojx" beforeDir="false" afterPath="$PROJECT_DIR$/USART.uvprojx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/objects.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/objects.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/objects.h" beforeDir="false" afterPath="$PROJECT_DIR$/objects.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/protocol.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/protocol.cpp" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="CMakeLists.txt" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectId" id="1gIXPRkLH6FvSJz3uMFX3GIXAgY" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="ASKED_SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="cf.first.check.clang-format" value="false" />
+    <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
+  </component>
+  <component name="RunManager">
+    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="a6dc9b58-7b28-4504-988c-7d6483de2bea" name="Default Changelist" comment="" />
+      <created>1597803057950</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1597803057950</updated>
+      <workItem from="1597803060353" duration="19695000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="724" y="340" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1597803339381">
+      <screen x="64" y="0" width="1856" height="1080" />
+    </state>
+    <state x="724" y="340" key="#com.intellij.fileTypes.FileTypeChooser/64.0.1856.1080/1987.0.1213.1024@64.0.1856.1080" timestamp="1597803339381" />
+    <state x="772" y="281" key="FileChooserDialogImpl" timestamp="1597804741250">
+      <screen x="64" y="0" width="1856" height="1080" />
+    </state>
+    <state x="772" y="281" key="FileChooserDialogImpl/64.0.1856.1080/1987.0.1213.1024@64.0.1856.1080" timestamp="1597804741250" />
+    <state x="469" y="236" key="SettingsEditor" timestamp="1597803290065">
+      <screen x="64" y="0" width="1856" height="1080" />
+    </state>
+    <state x="469" y="236" key="SettingsEditor/64.0.1856.1080/1987.0.1213.1024@64.0.1856.1080" timestamp="1597803290065" />
+    <state x="648" y="250" key="run.anything.popup" timestamp="1597803261092">
+      <screen x="64" y="0" width="1856" height="1080" />
+    </state>
+    <state x="648" y="250" key="run.anything.popup/64.0.1856.1080/1987.0.1213.1024@64.0.1856.1080" timestamp="1597803261092" />
+  </component>
+</project>

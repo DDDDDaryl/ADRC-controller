@@ -22,17 +22,21 @@ float control_system::open_loop_input_sine_amp  = 0;
 float control_system::open_loop_input_sine_freq = 0;
 float control_system::open_loop_input_step_amp  = 0;
 float control_system::open_loop_input_step_time = 0;
-float control_system::deadzone_compensation_dac1=0;
-float control_system::deadzone_compensation_dac2=0;
+float control_system::deadzone_compensation_dac1= 0;
+float control_system::deadzone_compensation_dac2= 0;
 float control_system::reference                 = 0;
 float control_system::sensor_voltage_V          = 0;
 float control_system::control_signal_V          = 0;
 Matrix ESO::yd(3, 1);
+
 control_system::control_system(){
     feedback_to_ESO          = 0;
 }
 
-float control_system::update_sensor_voltage_V() {return 0;};
+float control_system::update_sensor_voltage_V() {
+	sensor_voltage_V = (Get_Adc(3) + 1) / 4096 * 3.3f;
+	return sensor_voltage_V;
+}
 
 
 //vector<vector<float> > control_system::get_Input_for_ESO(const string &ESO_type) {//获取ESO的输入信号ud
@@ -109,12 +113,23 @@ uint8_t ESO::set_Init_state(const Matrix& Z0) {
 
 Matrix ESO::Iterate() {
     Matrix Z_next;
+	control_system::update_sensor_voltage_V();
     switch(control_system::controller_type){
         case LADRC:{
             ud = {{control_system::control_signal_V}, {control_system::sensor_voltage_V}};
             Z_next = A*Z + B*ud;
             yd = C*Z+D*ud;
             Z = Z_next;
+			printf("A = \r\n");
+			A.display();
+			printf("B = \r\n");
+			B.display();
+			printf("C = \r\n");
+			C.display();
+			printf("D = \r\n");
+			D.display();
+			printf("Z = \r\n");
+			Z.display();
             return yd;
         }
         case LADRC_decouple:{
@@ -131,17 +146,17 @@ controller::controller() {
     Control_Signal = 0;
     Transient_profile = 0;
     u0 = 0;
-    transfer_mat = {{0}};
+    transfer_mat = {{0, 0, 0, 0}};
 }
 
-uint8_t controller::Parameter_init(controller ctrl) {
+uint8_t controller::Parameter_init() {
     switch(control_system::controller_type){
         case LADRC:{
             Transient_profile = control_system::reference;
             Output_Error = 0;
             LADRC_Kp = (float)pow(control_system::LADRC_wc, 2);
             LADRC_Kd = 2.0f*control_system::LADRC_wc-1.0f;
-            ctrl.transfer_mat = {{LADRC_Kp/control_system::LADRC_b0, -LADRC_Kp/control_system::LADRC_b0, -LADRC_Kd/control_system::LADRC_b0, -1/control_system::LADRC_b0}};
+            transfer_mat = {{LADRC_Kp/control_system::LADRC_b0, -LADRC_Kp/control_system::LADRC_b0, -LADRC_Kd/control_system::LADRC_b0, -1/control_system::LADRC_b0}};
             break;
         }
     }

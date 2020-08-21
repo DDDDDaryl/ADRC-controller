@@ -189,8 +189,8 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
 				else 
 				{
 					USART_RX_STA|=0x8000;
-                    //C__set_PC_parse_flag(1);
-                    C__set_IC_parse_flag(1);
+                    C__set_PC_parse_flag(1);
+                    //C__set_IC_parse_flag(1);
 				}					//接收完成了 
 			}
 			else //还没收到0X0D
@@ -199,12 +199,12 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
 					USART_RX_STA|=0x4000;
 				else
 				{
-                    //C__PC_rec_buf_write(Res, USART_RX_STA);
-                    C__IC_rec_buf_write(Res, USART_RX_STA);
+                    C__PC_rec_buf_write(Res, USART_RX_STA);
+                    //C__IC_rec_buf_write(Res, USART_RX_STA);
 					USART_RX_STA++;
 					if(USART_RX_STA>(USART_REC_LEN-1))
 						USART_RX_STA=0;//接收数据错误,重新开始接收	  
-				}		 
+				}
 			}
 		}   		 
   } 

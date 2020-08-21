@@ -14,11 +14,24 @@
 #include <cmath>
 #include "usart.h"
 #include "Matrix.h"
+#include "adc.h"
 
 
-enum controller_name {LADRC=0x80, PID=0x40, LADRC_decouple=0x08};
-enum signal_type {sine=0x80, step=0x40};
-enum feedback {open_loop=0, closed_loop=1};
+enum controller_name {
+    LADRC=0x80,
+    PID=0x40,
+    LADRC_decouple=0x08
+};
+
+enum signal_type {
+    sine=0x80,
+    step=0x40
+};
+
+enum feedback {
+    open_loop=0,
+    closed_loop=1
+};
 
 using namespace std;
 class control_system;
@@ -45,7 +58,7 @@ public:
     static float    get_Sample_Rate_of_Sensor_Hz();
     static float    set_Sample_Rate_of_Sensor_Hz(const float& fs);
     static float    get_reference();
-    static float    update_reference(const float& ref);
+    static float    update_reference(const float &ref);
     static float    get_sensor_voltage_V();
     static float    update_sensor_voltage_V();
     static float    get_control_signal_V();
@@ -134,7 +147,7 @@ private:
     Matrix Lc;
     Matrix Z;
     Matrix ud;
-    static Matrix yd;
+    static Matrix yd; // ESO¹À¼ÆÖµ
     float beta;
 };
 
@@ -143,7 +156,7 @@ public:
     friend class communication_protocol;
 
     controller();
-    uint8_t     Parameter_init(controller ctrl);
+    uint8_t     Parameter_init();
     Matrix      Iterate(const Matrix& ESO_, const float& ref);
     float       get_(const string& member_name);
 private:
@@ -230,7 +243,7 @@ inline uint8_t control_system::get_controller_type() {
 inline uint8_t control_system::get_open_loop_input_type() {
     return open_loop_input_type;
 }
-inline float control_system::update_reference(const float& ref) {
+inline float control_system::update_reference(const float &ref) {
     return reference = ref;
 }
 inline uint8_t control_system::start_running(){

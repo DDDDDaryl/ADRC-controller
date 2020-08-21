@@ -19,6 +19,7 @@ extern u8  Tim2Flag;
 
 int main(){
 /*----------------------类实例化-----------------------*/
+	
     control_system sys;
 
     C__init();
@@ -28,8 +29,9 @@ int main(){
     ESO_3rd.LADRC_based_current_DESO_init();
 
     controller ctrl;
-    ctrl.Parameter_init(ctrl);
+    ctrl.Parameter_init();
 /*----------------------各外设初始化-----------------------*/
+
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);//设置系统中断优先级分组2
 	delay_init(168);		//延时初始化
 	uart_init(115200);	//串口初始化波特率为115200
@@ -39,6 +41,7 @@ int main(){
 	LED_Init();		  		//初始化与LED连接的硬件接口
 	KEY_Init();       //初始化与按键连接的硬件接口
 
+
 	Adc_Init(); 				//adc初始化
 	Dac1_Init();		 		//DAC通道1初始化
 	Dac2_Init();		 		//DAC通道1初始化
@@ -46,8 +49,9 @@ int main(){
 
 	DAC_SetChannel1Data(DAC_Align_12b_R,0);//初始值为0
 	DAC_SetChannel2Data(DAC_Align_12b_R,0);//初始值为0
+	printf("Initializing...\r\n");
 
-    while(true){//之后改成1
+    while(true) {//之后改成1
     /*---------------------------串口接收数据解析----------------------------*/
         if(C__get_PC_parse_flag() == true){
             USART_RX_STA = 0;
@@ -70,10 +74,10 @@ int main(){
                 USART_RX_STA = 0;
                 C__set_IC_parse_flag(false);
                 printf("reference = %#1.0f\r\n", C__parse_IC_msg());
-                //C__parse_IC_msg();
+                C__parse_IC_msg();
             }
             if(Tim2Flag==1)
-                {
+                { 
                 switch (control_system::get_Is_close_loop()){
                     case closed_loop:{
 
@@ -82,9 +86,20 @@ int main(){
     //                            /*-------------------------------测试部分---------------------------*/
     //                            auto start = system_clock::now();
     //                            /*-----------------------------测试区底部---------------------------*/
+								auto output = ESO::get_output();
+								printf("output = ");
+								output.display();
+								
                                 float u = control_system::update_control_signal_V(ctrl.Iterate(ESO::get_output(), control_system::get_reference())[0][0]);
                                 ESO_3rd.Iterate();//得到当前输出
-                                //printf("Control Signal = %#1.1f\r\n", u);
+								printf("reference = %f\r\n", control_system::get_reference());
+								auto ctrl_iter = ctrl.Iterate(output, control_system::get_reference());
+								printf("ctrl_iter =\r\n");
+								ctrl_iter.display();
+								printf("get_sensor_voltage_V = %#1.6f\r\n", control_system::get_sensor_voltage_V());
+								
+                                printf("Control Signal = %#1.6f V\r\n", u);
+
                                 /*-------------------------------测试部分---------------------------*/
     //                            auto end   = system_clock::now();
     //                            auto duration = duration_cast<microseconds>(end - start);
@@ -112,9 +127,10 @@ int main(){
                     }//case open_loop:
                 }//switch (sys.get_Is_close_loop())
             }
+				
         }//while(sys.get_system_state() )
         /*------------------重新初始化控制器----------------*/
-        //printf("System running stopped.");
+        
     }//while(1)
 
 }

@@ -9,8 +9,8 @@ Matrix& Matrix::operator =(const Matrix &src) //重载"="运算符
         return *this;
     int i,j;
     for(i=0;i<m;i++)
-        delete []data[i];
-    delete []data;
+        delete [] data[i];
+    delete [] data;
     m=src.m;n=src.n;
     data=new float*[m];//动态建立二维数组
     for(i=0;i<m;i++)
@@ -69,7 +69,7 @@ void Matrix::display()
     {
         for(j=0;j<n;j++)
         {
-            printf("%#1.0f ", data[i][j]);
+            printf("%#1.6f\t", data[i][j]);
         }
         printf("\r\n");
     }

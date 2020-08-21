@@ -37,7 +37,7 @@ public:
     static bool            get_PC_parse_flag();
     static float           parse_IC_msg();
     static bool            parse_PC_msg();
-    static void init();
+    static void            init();
 
 };
 struct ID_func{
@@ -178,20 +178,27 @@ bool communication_protocol::parse_PC_msg() {
             return false;
         }
     }
-    auto *p_msg = new PC_MESSAGE;
-    auto *p_tmp = new transit;
+//    auto p_msg = new PC_MESSAGE;
+//    auto p_tmp = new transit;
+    PC_MESSAGE msg;
+    transit trans;
+    auto p_msg = &msg;
+    auto p_tmp = &trans;
+
     control_system::set_system_state(false);
     p_msg->body_length = *++it_PC_r; //data length(self included)
     uint8_t ID_tmp = 0;
 
     for(uint8_t i=1; i<p_msg->body_length; ++i){
         ID_tmp = *++it_PC_r;
-        if(ID_tmp & 0x80u){
-            for(uint8_t & j : p_tmp->data){
-                j = *++it_PC_r;
+        if(ID_tmp & 0x80u){ // ID 最高位代表数据类型
+            for(int j = 3;  j >= 0; --j){ // 大端序转为小端序
+                p_tmp->data[j] = *++it_PC_r;
                 ++i;
+				//printf("j = %x\r\n", j);
             }
-            printf("ID_tmp = %#04x, data = %1.2f\r\n", ID_tmp, ID_hash_table::ID_tree[ID_tmp].func_ptr_data(p_tmp->d) );
+			auto res = ID_hash_table::ID_tree[ID_tmp].func_ptr_data(p_tmp->d);
+            printf("ID_tmp = %#04x, data = %1.2f\r\n", ID_tmp, res);
         }
         else{
             ID_hash_table::ID_tree[ID_tmp].func_ptr_flag(*++it_PC_r);
@@ -199,12 +206,34 @@ bool communication_protocol::parse_PC_msg() {
             printf("ID_tmp = %#04x, data = %#04x\r\n", ID_tmp, ID_hash_table::ID_tree[ID_tmp].func_ptr_flag(*it_PC_r) );
         }
     }
-    delete p_msg;
-    delete p_tmp;
+//    delete p_msg;
+//    delete p_tmp;
     return true;
 }
 
-
+enum ID_table {
+	sys_running_state	        = 0x09,
+	Is_close_loop	            = 0x0A,
+	controller_type	            = 0x0B,
+	open_loop_input_type	    = 0x0C,
+	Sample_Rate_Hz	            = 0x8C,
+	Sample_Rate_of_Sensor_Hz	= 0x8D,
+	run_time	                = 0x0E,
+	reference_signal			= 0xCF,
+	LADRC_wc	                = 0x91,
+	LADRC_wo	                = 0x92,
+	LADRC_b0	                = 0x93,
+	LADRC_wc_bar	            = 0x94,
+	PID_Kp	                    = 0x99,
+	PID_Ki	                    = 0x9A,
+	PID_Kd	                    = 0x9B,
+	open_loop_input_sine_amp	= 0xB1,
+	open_loop_input_sine_freq	= 0xB2,
+	open_loop_input_step_amp	= 0xB9,
+	open_loop_input_step_time	= 0xBA,
+	deadzone_compensation_dac1	= 0xC9,
+	deadzone_compensation_dac2	= 0xD1
+};
 
 bool communication_protocol::ID_hash_table_init() {
 
@@ -215,6 +244,7 @@ bool communication_protocol::ID_hash_table_init() {
     communication_protocol::ID_hash_table::ID_tree[0x8C].func_ptr_data = &control_system::set_Sample_Rate_Hz;
     communication_protocol::ID_hash_table::ID_tree[0x8D].func_ptr_data = &control_system::set_Sample_Rate_of_Sensor_Hz;
     communication_protocol::ID_hash_table::ID_tree[0x0E].func_ptr_flag = &control_system::set_run_time;
+	communication_protocol::ID_hash_table::ID_tree[reference_signal].func_ptr_data = &control_system::update_reference;
     communication_protocol::ID_hash_table::ID_tree[0x91].func_ptr_data = &control_system::set_LADRC_wc;
     communication_protocol::ID_hash_table::ID_tree[0x92].func_ptr_data = &control_system::set_LADRC_wo;
     communication_protocol::ID_hash_table::ID_tree[0x93].func_ptr_data = &control_system::set_LADRC_b0;
@@ -228,6 +258,7 @@ bool communication_protocol::ID_hash_table_init() {
     communication_protocol::ID_hash_table::ID_tree[0xBA].func_ptr_data = &control_system::set_open_loop_input_step_time;
     communication_protocol::ID_hash_table::ID_tree[0xC9].func_ptr_data = &control_system::set_deadzone_compensation_dac1;
     communication_protocol::ID_hash_table::ID_tree[0xD1].func_ptr_data = &control_system::set_deadzone_compensation_dac2;
+	
 
     return true;
 }
