@@ -15,6 +15,7 @@
 #include "usart.h"
 #include "Matrix.h"
 #include "adc.h"
+#include "info_to_send.h"
 
 
 enum controller_name {
@@ -159,6 +160,15 @@ public:
     uint8_t     Parameter_init();
     Matrix      Iterate(const Matrix& ESO_, const float& ref);
     float       get_(const string& member_name);
+	float get_Transient_profile() {
+		return Transient_profile;
+	}
+	float get_Output_Error() {
+		return Output_Error;
+	}
+	float get_Control_Signal() {
+		return Control_Signal;
+	}
 private:
     float LADRC_Kp;
     float LADRC_Kd;
@@ -438,5 +448,7 @@ inline Matrix ESO::get_output() {
 inline float control_system::update_control_signal_V(const float& u){
     return control_signal_V = u;
 }
+
+info &pack_to_send(controller &ctrl);
 
 #endif //WEEDER_CONTROLLER_OBJECTS_H

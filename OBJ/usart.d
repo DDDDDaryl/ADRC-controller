@@ -19,5 +19,5 @@
   ..\FWLIB\inc\stm32f4xx_can.h ..\FWLIB\inc\stm32f4xx_dac.h \
   ..\FWLIB\inc\stm32f4xx_dcmi.h ..\FWLIB\inc\stm32f4xx_fsmc.h \
   ..\SYSTEM\usart\usart.h F:\keil5\ARM\ARMCLANG\Bin\..\include\stdio.h \
-  ..\USER\stm32f4xx_conf.h ..\HARDWARE\LED\led.h \
+  ..\USER\stm32f4xx_conf.h ..\HARDWARE\LED\led.h ..\USER\info_to_send.h \
   F:\keil5\ARM\ARMCLANG\Bin\..\include\time.h

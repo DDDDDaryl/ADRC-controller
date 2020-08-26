@@ -499,6 +499,109 @@ void COMMUNICATION_Uart_Start_DMA_Tx(uint16_t size)
     COMMUNICATION_UART_Tx_DMA_Channel->NDTR = (uint16_t)size;                  //设置要发送的字节数目
     DMA_Cmd(COMMUNICATION_UART_Tx_DMA_Channel, ENABLE);                        //开始DMA发送
 }
+/*
+info_id_ref = 0x81,
+	info_id_transient_profile,
+	info_id_output_pos,
+	info_id_err,
+	info_id_control_signal,
+	info_id_ESO_first_order_state,
+	info_id_ESO_second_order_state,
+	info_id_ESO_third_order_state,
+	info_id_ESO_fourth_order_state
+
+	float ref;
+	float transient_profile;
+	float sensor_pos;
+	float err;
+	float ESO_order1;
+	float ESO_order2;
+	float ESO_order3;
+	float ctrl_sig;
+*/
+
+
+void my_usart_send_sys_state(struct info *info_) {
+	static union float_transmit trans;
+		
+	int COMMUNICATION_Tx_Index = 0;
+	
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = 0xeb;
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = 0x90;
+	
+	u8 len = 4 + 1 + 5 * 8;
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = len;
+	
+	trans.integer = info_id_ref;
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[0];
+	trans.data = info_->ref;
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[0];
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[1];
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[2];
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[3];
+	
+	trans.integer = info_id_transient_profile;
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[0];
+	trans.data = info_->transient_profile;
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[0];
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[1];
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[2];
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[3];
+	
+	
+	trans.integer = info_id_output_pos;
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[0];
+	trans.data = info_->sensor_pos;
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[0];
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[1];
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[2];
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[3];
+	
+	trans.integer = info_id_err;
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[0];
+	trans.data = info_->err;
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[0];
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[1];
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[2];
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[3];
+	
+	trans.integer = info_id_ESO_first_order_state;
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[0];
+	trans.data = info_->ESO_order1;
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[0];
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[1];
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[2];
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[3];
+	
+	trans.integer = info_id_ESO_second_order_state;
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[0];
+	trans.data = info_->ESO_order2;
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[0];
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[1];
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[2];
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[3];
+	
+	trans.integer = info_id_ESO_third_order_state;
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[0];
+	trans.data = info_->ESO_order3;
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[0];
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[1];
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[2];
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[3];
+	
+	trans.integer = info_id_control_signal;
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[0];
+	trans.data = info_->ctrl_sig;
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[0];
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[1];
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[2];
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = trans.d[3];
+	
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = 0x0d;
+	COMMUNICATION_Tx_Buf[COMMUNICATION_Tx_Index++] = 0x0a;  
+	
+	COMMUNICATION_Uart_Start_DMA_Tx( COMMUNICATION_Tx_Index );
+}
 
 void COMMUNICATION_Cmd_WriteParam( u8 sample_num, u8 *psz_param )
 {

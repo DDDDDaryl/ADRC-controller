@@ -50,6 +50,8 @@ int main(){
 	DAC_SetChannel1Data(DAC_Align_12b_R,0);//初始值为0
 	DAC_SetChannel2Data(DAC_Align_12b_R,0);//初始值为0
 	printf("Initializing...\r\n");
+	
+	unsigned long long cnt = 0;
 
     while(true) {//之后改成1
     /*---------------------------串口接收数据解析----------------------------*/
@@ -76,56 +78,63 @@ int main(){
                 printf("reference = %#1.0f\r\n", C__parse_IC_msg());
                 C__parse_IC_msg();
             }
-            if(Tim2Flag==1)
-                { 
-                switch (control_system::get_Is_close_loop()){
-                    case closed_loop:{
+            if(Tim2Flag==1) {
+				Tim2Flag = 0;
+				cnt = (cnt + 1) % 20;
+				if (!cnt) {
+					
+					switch (control_system::get_Is_close_loop()){
+						case closed_loop:{
 
-                        switch(control_system::get_controller_type()){
-                            case LADRC:{
-    //                            /*-------------------------------测试部分---------------------------*/
-    //                            auto start = system_clock::now();
-    //                            /*-----------------------------测试区底部---------------------------*/
-								auto output = ESO::get_output();
-								printf("output = ");
-								output.display();
-								
-                                float u = control_system::update_control_signal_V(ctrl.Iterate(ESO::get_output(), control_system::get_reference())[0][0]);
-                                ESO_3rd.Iterate();//得到当前输出
-								printf("reference = %f\r\n", control_system::get_reference());
-								auto ctrl_iter = ctrl.Iterate(output, control_system::get_reference());
-								printf("ctrl_iter =\r\n");
-								ctrl_iter.display();
-								printf("get_sensor_voltage_V = %#1.6f\r\n", control_system::get_sensor_voltage_V());
-								
-                                printf("Control Signal = %#1.6f V\r\n", u);
+							switch(control_system::get_controller_type()){
+								case LADRC:{
+		//                            /*-------------------------------测试部分---------------------------*/
+		//                            auto start = system_clock::now();
+		//                            /*-----------------------------测试区底部---------------------------*/
+	//								auto output = ESO::get_output();
+	//								printf("output = ");
+	//								output.display();
+									
+									float u = control_system::update_control_signal_V(ctrl.Iterate(ESO::get_output(), control_system::get_reference())[0][0]);
+									ESO_3rd.Iterate();//得到当前输出
+									auto info_res = pack_to_send(ctrl);
+									my_usart_send_sys_state(&info_res);
+									
+	//								printf("reference = %f\r\n", control_system::get_reference());
+	//								auto ctrl_iter = ctrl.Iterate(output, control_system::get_reference());
+	//								printf("ctrl_iter =\r\n");
+	//								ctrl_iter.display();
+	//								printf("get_sensor_voltage_V = %#1.6f\r\n", control_system::get_sensor_voltage_V());
+	//								
+	//                                printf("Control Signal = %#1.6f V\r\n", u);
 
-                                /*-------------------------------测试部分---------------------------*/
-    //                            auto end   = system_clock::now();
-    //                            auto duration = duration_cast<microseconds>(end - start);
-    //                            printf("%f us spent.\r\n", double(duration.count()));
-                                /*-----------------------------测试区底部---------------------------*/
-                                break;
-                            }
-                            case PID:{
-                                break;
-                            }
-                        }//switch(sys.get_controller_type())
-                        break;
-                    }//case closed_loop:
-                    case open_loop:{
+									/*-------------------------------测试部分---------------------------*/
+		//                            auto end   = system_clock::now();
+		//                            auto duration = duration_cast<microseconds>(end - start);
+		//                            printf("%f us spent.\r\n", double(duration.count()));
+									/*-----------------------------测试区底部---------------------------*/
+									break;
+								}
+								case PID:{
+									break;
+								}
+							}//switch(sys.get_controller_type())
+							break;
+						}//case closed_loop:
+						case open_loop:{
 
-                        switch(control_system::get_open_loop_input_type()){
-                            case sine:{
-                                break;
-                            }
-                            case step:{
-                                break;
-                            }
-                        }//switch(sys.get_open_loop_input_type())
-                        break;
-                    }//case open_loop:
-                }//switch (sys.get_Is_close_loop())
+							switch(control_system::get_open_loop_input_type()){
+								case sine:{
+									break;
+								}
+								case step:{
+									break;
+								}
+							}//switch(sys.get_open_loop_input_type())
+							break;
+						}//case open_loop:
+					}//switch (sys.get_Is_close_loop())
+				}	
             }
 				
         }//while(sys.get_system_state() )

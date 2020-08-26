@@ -70,8 +70,8 @@
   ..\FWLIB\inc\stm32f4xx_rng.h ..\FWLIB\inc\stm32f4xx_can.h \
   ..\FWLIB\inc\stm32f4xx_dac.h ..\FWLIB\inc\stm32f4xx_dcmi.h \
   ..\FWLIB\inc\stm32f4xx_fsmc.h ..\SYSTEM\sys\sys.h \
-  ..\HARDWARE\LED\led.h ..\USER\Matrix.h ..\HARDWARE\ADC\adc.h \
-  ..\HARDWARE\DMA\dma.h \
+  ..\HARDWARE\LED\led.h ..\USER\info_to_send.h ..\USER\Matrix.h \
+  ..\HARDWARE\ADC\adc.h ..\HARDWARE\DMA\dma.h ..\USER\info_to_send.h \
   F:\keil5\ARM\ARMCLANG\Bin\..\include\libcxx\vector \
   F:\keil5\ARM\ARMCLANG\Bin\..\include\libcxx\__bit_reference \
   F:\keil5\ARM\ARMCLANG\Bin\..\include\libcxx\climits \

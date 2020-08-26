@@ -21,17 +21,62 @@ Target DLL:      Segger\JL2CM3.dll V2.99.38.0
 Dialog DLL:      TCM.DLL V1.46.0.0
  
 <h2>Project:</h2>
-C:\Users\Frank Young\Desktop\ADRC-controller\USER\USART.uvprojx
-Project File Date:  08/19/2020
+C:\Users\Frank Young\Desktop\backup\ADRC-controller\USER\USART.uvprojx
+Project File Date:  08/24/2020
 
 <h2>Output:</h2>
 *** Using Compiler 'V6.14', folder: 'F:\keil5\ARM\ARMCLANG\Bin'
 Build target 'Control_system'
+../SYSTEM/usart/usart.c(2): warning: In file included from...
+../SYSTEM/usart/usart.h(14): warning: In file included from...
+../USER\info_to_send.h(11): warning: typedef requires a name [-Wmissing-declarations]
+typedef struct info {
+^~~~~~~
+../SYSTEM/usart/usart.c(192): warning: implicit declaration of function 'C__set_PC_parse_flag' is invalid in C99 [-Wimplicit-function-declaration]
+                    C__set_PC_parse_flag(1);
+                    ^
+../SYSTEM/usart/usart.c(202): warning: implicit declaration of function 'C__PC_rec_buf_write' is invalid in C99 [-Wimplicit-function-declaration]
+                    C__PC_rec_buf_write(Res, USART_RX_STA);
+                    ^
+../SYSTEM/usart/usart.c(298): warning: implicit declaration of function 'C__set_IC_parse_flag' is invalid in C99 [-Wimplicit-function-declaration]
+                    C__set_IC_parse_flag(1);
+                    ^
+../SYSTEM/usart/usart.c(308): warning: implicit declaration of function 'C__IC_rec_buf_write' is invalid in C99 [-Wimplicit-function-declaration]
+                    C__IC_rec_buf_write(Res, USART_RX_STA);
+                    ^
+5 warnings generated.
+compiling usart.c...
+main.cpp(5): warning: In file included from...
+../USER/objects.h(15): warning: In file included from...
+../SYSTEM/usart\usart.h(14): warning: In file included from...
+../USER\info_to_send.h(11): warning: typedef requires a name [-Wmissing-declarations]
+typedef struct info {
+^~~~~~~
+main.cpp(86): warning: switch condition has boolean value [-Wswitch-bool]
+                                        switch (control_system::get_Is_close_loop()){
+                                        ^       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2 warnings generated.
+compiling main.cpp...
+objects.cpp(5): warning: In file included from...
+../USER/objects.h(15): warning: In file included from...
+../SYSTEM/usart\usart.h(14): warning: In file included from...
+../USER\info_to_send.h(11): warning: typedef requires a name [-Wmissing-declarations]
+typedef struct info {
+^~~~~~~
+1 warning generated.
 compiling objects.cpp...
+protocol.cpp(5): warning: In file included from...
+../USER/objects.h(15): warning: In file included from...
+../SYSTEM/usart\usart.h(14): warning: In file included from...
+../USER\info_to_send.h(11): warning: typedef requires a name [-Wmissing-declarations]
+typedef struct info {
+^~~~~~~
+1 warning generated.
+compiling protocol.cpp...
 linking...
-Program Size: Code=28754 RO-data=1350 RW-data=52 ZI-data=5820  
+Program Size: Code=28922 RO-data=1298 RW-data=52 ZI-data=5860  
 FromELF: creating hex file...
-"..\OBJ\USART.axf" - 0 Error(s), 0 Warning(s).
+"..\OBJ\USART.axf" - 0 Error(s), 9 Warning(s).
 
 <h2>Software Packages used:</h2>
 

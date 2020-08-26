@@ -120,16 +120,16 @@ Matrix ESO::Iterate() {
             Z_next = A*Z + B*ud;
             yd = C*Z+D*ud;
             Z = Z_next;
-			printf("A = \r\n");
-			A.display();
-			printf("B = \r\n");
-			B.display();
-			printf("C = \r\n");
-			C.display();
-			printf("D = \r\n");
-			D.display();
-			printf("Z = \r\n");
-			Z.display();
+//			printf("A = \r\n");
+//			A.display();
+//			printf("B = \r\n");
+//			B.display();
+//			printf("C = \r\n");
+//			C.display();
+//			printf("D = \r\n");
+//			D.display();
+//			printf("Z = \r\n");
+//			Z.display();
             return yd;
         }
         case LADRC_decouple:{
@@ -203,5 +203,45 @@ float controller::get_(const string& member_name) {
         return 0;
     }
 
+}
+
+
+//	float get_ref() {
+//		return control_system::get_reference();
+//	}
+//	float get_transient_profile() {
+//		return info_ctrl.get_Transient_profile();
+//	}
+//	float get_Output_Error() {
+//		return info_ctrl.get_Output_Error();
+//	}
+//	float get_Control_Signal() {
+//		return info_ctrl.get_Control_Signal();
+//	}
+//	float get_ESO_first_order_state() {
+//		return ESO::get_output()[0][0];
+//	}
+//	float get_ESO_second_order_state() {
+//		return ESO::get_output()[1][0];
+//	}
+//	float get_ESO_third_order_state() {
+//		return ESO::get_output()[2][0];
+//	}
+//	float get_ESO_fourth_order_state() {
+//		return ESO::get_output()[3][0];
+//	}
+
+info &pack_to_send(controller &ctrl) {
+	static info info_;
+	info_.ref = control_system::get_reference();
+	info_.transient_profile = ctrl.get_Transient_profile();
+	info_.err = ctrl.get_Output_Error();
+	auto yd = ESO::get_output();
+	info_.ESO_order1 = yd[0][0];
+	info_.ESO_order2 = yd[1][0];
+	info_.ESO_order3 = yd[2][0];
+	info_.ctrl_sig = ctrl.get_Control_Signal();
+	info_.sensor_pos = control_system::get_sensor_voltage_V();
+	return info_;
 }
 

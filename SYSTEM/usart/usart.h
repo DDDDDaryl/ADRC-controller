@@ -11,6 +11,7 @@
 #include "stm32f4xx_conf.h"
 #include "sys.h" 
 #include "led.h"
+#include "info_to_send.h"
 //////////////////////////////////////////////////////////////////////////////////	 
 
 //STM32¿ª·¢°å
@@ -93,6 +94,9 @@ void uart_init(u32 bound);
 void usart3_init(u32 bound);
 void USART2_Init(u32 bound);
 void Usart_SendByte(uint8_t data);
+
+//my
+void my_usart_send_sys_state(struct info *info_);
 
 #ifdef __cplusplus
  }
