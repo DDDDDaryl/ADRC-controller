@@ -52,15 +52,35 @@ int main(){
 	printf("Initializing...\r\n");
 	
 	unsigned long long cnt = 0;
+	unsigned long long heart_beat_cnt = 0;
+	
+	//set_output(3.3f);
+	
 
     while(true) {//之后改成1
+		
     /*---------------------------串口接收数据解析----------------------------*/
         if(C__get_PC_parse_flag() == true){
             USART_RX_STA = 0;
             C__set_PC_parse_flag(false);
             C__parse_PC_msg();
         }
-        while(control_system::get_system_state() ){//系统运行中
+
+		if (!control_system::get_system_state()) {
+			if(Tim2Flag==1) {
+				Tim2Flag = 0;
+				heart_beat_cnt = (heart_beat_cnt + 1) % 1000;
+			}
+			
+			if (!heart_beat_cnt) {
+				Usart_SendByte_communication('#');
+				//printf("tik");
+			}
+				
+		}
+		
+		
+        while( control_system::get_system_state() ){//系统运行中
             /*---------------------------串口接收数据解析---------------------------*/
             if(C__get_PC_parse_flag() == true){                
                 printf("PC Message received.\r\n");

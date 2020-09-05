@@ -34,7 +34,8 @@ control_system::control_system(){
 }
 
 float control_system::update_sensor_voltage_V() {
-	sensor_voltage_V = (Get_Adc(3) + 1) / 4096 * 3.3f;
+	sensor_voltage_V = (static_cast<float>(Get_Adc(3)) / 4095.0f) * 3.3f;
+	//printf("sensor_voltage_V = %f\r\n", sensor_voltage_V);
 	return sensor_voltage_V;
 }
 
@@ -61,6 +62,7 @@ ESO::ESO(uint8_t order) {
 
 uint8_t ESO::LADRC_based_current_DESO_init() {
     
+	
     Matrix phi{{1.0f, (1.0f/control_system::Sample_Rate_Hz), powf(control_system::Sample_Rate_Hz, -2)*0.5f},
                {0.0f, 1.0f, (1.0f/control_system::Sample_Rate_Hz)},
                {0.0f, 0.0f, 1.0f}};
@@ -116,6 +118,7 @@ Matrix ESO::Iterate() {
 	control_system::update_sensor_voltage_V();
     switch(control_system::controller_type){
         case LADRC:{
+			control_system::update_sensor_voltage_V();
             ud = {{control_system::control_signal_V}, {control_system::sensor_voltage_V}};
             Z_next = A*Z + B*ud;
             yd = C*Z+D*ud;
@@ -167,7 +170,11 @@ uint8_t controller::Parameter_init() {
 Matrix controller::Iterate(const Matrix& ESO_y, const float& ref) {
     switch(control_system::controller_type){
         case LADRC:{
-            return transfer_mat*(Matrix::cat(2,Matrix{{ref}}, ESO_y));
+			Output_Error = control_system::get_reference() - control_system::get_sensor_voltage_V();
+			Control_Signal = (transfer_mat*(Matrix::cat(2,Matrix{{ref}}, ESO_y)))[0][0];
+			auto constrained_ctrl_sig = Control_Signal < 0 ? max(Control_Signal, -3.3f) : min(Control_Signal, 3.3f);
+			set_output(constrained_ctrl_sig);
+            return {{Control_Signal}};
         }
         case PID:{
             return transfer_mat*ESO_y;
@@ -242,6 +249,17 @@ info &pack_to_send(controller &ctrl) {
 	info_.ESO_order3 = yd[2][0];
 	info_.ctrl_sig = ctrl.get_Control_Signal();
 	info_.sensor_pos = control_system::get_sensor_voltage_V();
+	
+//	printf("ref = %f\r\n", info_.ref);
+//	printf("transient_profile = %f\r\n", info_.transient_profile);
+//	printf("err = %f\r\n", info_.err);
+//	printf("ESO_order1 = %f\r\n", info_.ESO_order1);
+//	printf("ESO_order2 = %f\r\n", info_.ESO_order2);
+//	printf("ESO_order3 = %f\r\n", info_.ESO_order3);
+//	printf("ctrl_sig = %f\r\n", info_.ctrl_sig);
+//	printf("sensor_pos = %f\r\n", info_.sensor_pos);
+//	printf("\r\n");
+	
 	return info_;
 }
 

@@ -94,6 +94,7 @@ void uart_init(u32 bound);
 void usart3_init(u32 bound);
 void USART2_Init(u32 bound);
 void Usart_SendByte(uint8_t data);
+void Usart_SendByte_communication(uint8_t data);
 
 //my
 void my_usart_send_sys_state(struct info *info_);

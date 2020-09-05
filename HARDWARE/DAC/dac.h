@@ -18,6 +18,7 @@ void Dac1_Set_Vol(float vol);
 void Dac2_Init(void);		//DAC通道2初始化	 	 
 void Dac2_Set_Vol(float vol);	//设置通道输出电压
 void DAC_TIM_Config(void);
+void set_output(float vol);
 #ifdef __cplusplus
  }
  #endif

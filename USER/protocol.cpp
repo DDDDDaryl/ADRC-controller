@@ -3,6 +3,7 @@
 //
 #include "protocol.h"
 #include "objects.h"
+#include <algorithm>
 #include <vector>
 using namespace std;
 
@@ -54,8 +55,8 @@ struct ID_func{
 
 
 uint16_t communication_protocol::rec_buf_size = 200;
-vector<uint8_t> communication_protocol::IC_rec_buf(200);
-vector<uint8_t> communication_protocol::PC_rec_buf(200);
+vector<uint8_t> communication_protocol::IC_rec_buf(communication_protocol::rec_buf_size);
+vector<uint8_t> communication_protocol::PC_rec_buf(communication_protocol::rec_buf_size);
 vector<uint8_t> communication_protocol::PC_send_buf(200);
 vector<uint8_t>::iterator communication_protocol::it_IC_r = IC_rec_buf.begin();
 vector<uint8_t>::iterator communication_protocol::it_PC_r = PC_rec_buf.begin();
@@ -168,13 +169,22 @@ float communication_protocol::parse_IC_msg() {
 bool communication_protocol::parse_PC_msg() {
     
     it_PC_r = PC_rec_buf.begin();
+	for (auto it = PC_rec_buf.begin(); it != PC_rec_buf.end(); ++it)
+		printf("%02x ", *it);
+	printf("\r\n");
+	
+	while (it_PC_r != PC_rec_buf.end() && *it_PC_r != 0xeb) {
+		++it_PC_r;
+	}
     if(*it_PC_r != 0xeb){
         printf("Invalid Header.\r\n");
+		fill(PC_rec_buf.begin(), PC_rec_buf.end(), 0);
         return false;
     }
     else{
         if(*++it_PC_r!=0x90){
             printf("Invalid Header.\r\n");
+			fill(PC_rec_buf.begin(), PC_rec_buf.end(), 0);
             return false;
         }
     }
@@ -192,7 +202,7 @@ bool communication_protocol::parse_PC_msg() {
     for(uint8_t i=1; i<p_msg->body_length; ++i){
         ID_tmp = *++it_PC_r;
         if(ID_tmp & 0x80u){ // ID 最高位代表数据类型
-            for(int j = 3;  j >= 0; --j){ // 大端序转为小端序
+            for(int j = 0;  j < 4; ++j){ // 
                 p_tmp->data[j] = *++it_PC_r;
                 ++i;
 				//printf("j = %x\r\n", j);
@@ -201,13 +211,14 @@ bool communication_protocol::parse_PC_msg() {
             printf("ID_tmp = %#04x, data = %1.2f\r\n", ID_tmp, res);
         }
         else{
-            ID_hash_table::ID_tree[ID_tmp].func_ptr_flag(*++it_PC_r);
+            auto ret = ID_hash_table::ID_tree[ID_tmp].func_ptr_flag(*++it_PC_r);
             ++i;
-            printf("ID_tmp = %#04x, data = %#04x\r\n", ID_tmp, ID_hash_table::ID_tree[ID_tmp].func_ptr_flag(*it_PC_r) );
+            printf("ID_tmp = %#04x, data = %#04x\r\n", ID_tmp, ret );
         }
     }
 //    delete p_msg;
 //    delete p_tmp;
+	fill(PC_rec_buf.begin(), PC_rec_buf.end(), 0);
     return true;
 }
 

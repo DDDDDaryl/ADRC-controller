@@ -15,6 +15,7 @@
 #include "usart.h"
 #include "Matrix.h"
 #include "adc.h"
+#include "dac.h"
 #include "info_to_send.h"
 
 
@@ -446,6 +447,7 @@ inline Matrix ESO::get_output() {
     return yd;
 }
 inline float control_system::update_control_signal_V(const float& u){
+	set_output(u);
     return control_signal_V = u;
 }
 

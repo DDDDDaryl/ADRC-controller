@@ -130,6 +130,16 @@ void TIM2_IRQHandler(void)   //TIM2ÖÐ¶Ï
 				}
 }
 
+void set_output(float vol) {
+	if (vol < 0) {
+		Dac1_Set_Vol(0);
+		Dac2_Set_Vol(fabs(vol) * 1000);		
+	} else {
+		Dac2_Set_Vol(0);
+		Dac1_Set_Vol(vol * 1000);
+	}	
+}
+
 
 
 

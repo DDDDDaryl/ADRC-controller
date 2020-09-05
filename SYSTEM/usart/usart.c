@@ -43,8 +43,8 @@ __asm(".global __use_no_semihosting\n\t");
 //重定义fputc函数 
 int fputc(int ch, FILE *f)
 { 	
-	while((USART1->SR&0X40)==0);//循环发送,直到发送完毕   
-	USART1->DR = (u8) ch;      
+	while((USART2->SR&0X40)==0);//循环发送,直到发送完毕   
+	USART2->DR = (u8) ch;      
 	return ch;
 }
 
@@ -117,6 +117,7 @@ u8 USART_RX_BUF[USART_REC_LEN];     //接收缓冲,最大USART_REC_LEN个字节.
 //bit13~0，	接收到的有效字节数目
 u16 USART_RX_STA=0;       //接收状态标记	
 u8 parse_flag=0;					//接收完毕，开始解析
+u16 header_flag = 0;
 
 #endif
 //初始化IO 串口1 
@@ -177,7 +178,24 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
 	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)  //接收中断(接收到的数据必须是0x0d 0x0a结尾)
 	{
 		Res =USART_ReceiveData(USART1);//(USART1->DR);	//读取接收到的数据
+
 		//LED2=!LED2;
+//		if (!(header_flag & 0x8000) || !(header_flag & 0x4000)) {
+//			if (Res == 0xeb && (header_flag & 0x4000) == 0) {
+//				header_flag |= 0x80;
+//			}
+//			else if (Res == 0x90) {
+//				if ((header_flag & 0x8000) == 1) {
+//					header_flag |= 0x4000;
+//				} else {
+//					header_flag = 0;
+//				}						
+//			}
+//			return;
+//		}
+//		if (Res == 0xeb) header_flag = 1;
+//		if (!header_flag) return;
+		
 		if((USART_RX_STA&0x8000)==0)//接收未完成
 		{
 			if(USART_RX_STA&0x4000)//接收到了0x0d
@@ -185,10 +203,12 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
 				if(Res!=0x0a)
 				{
 					USART_RX_STA=0;
+					//header_flag = 0;
 				}//接收错误,重新开始
 				else 
 				{
 					USART_RX_STA|=0x8000;
+					//header_flag = 0;
                     C__set_PC_parse_flag(1);
                     //C__set_IC_parse_flag(1);
 				}					//接收完成了 
@@ -202,8 +222,10 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
                     C__PC_rec_buf_write(Res, USART_RX_STA);
                     //C__IC_rec_buf_write(Res, USART_RX_STA);
 					USART_RX_STA++;
-					if(USART_RX_STA>(USART_REC_LEN-1))
+					if(USART_RX_STA>(USART_REC_LEN-1)) {
 						USART_RX_STA=0;//接收数据错误,重新开始接收	  
+						//header_flag = 0;
+					}
 				}
 			}
 		}   		 
@@ -324,6 +346,15 @@ void Usart_SendByte(uint8_t data)
 {
 	/* 发送一个字节数据到USART2 */
 	USART_SendData(USART2,data);
+	/* 等待发送数据寄存器为空 */
+	while (USART_GetFlagStatus(USART2, USART_FLAG_TXE) == RESET);	
+	while (USART_GetFlagStatus(USART2, USART_FLAG_TC) == RESET);
+}
+
+void Usart_SendByte_communication(uint8_t data)
+{
+	/* 发送一个字节数据到USART2 */
+	USART_SendData(USART1,data);
 	/* 等待发送数据寄存器为空 */
 	while (USART_GetFlagStatus(USART2, USART_FLAG_TXE) == RESET);	
 	while (USART_GetFlagStatus(USART2, USART_FLAG_TC) == RESET);
