@@ -243,7 +243,9 @@ enum ID_table {
 	open_loop_input_step_amp	= 0xB9,
 	open_loop_input_step_time	= 0xBA,
 	deadzone_compensation_dac1	= 0xC9,
-	deadzone_compensation_dac2	= 0xD1
+	deadzone_compensation_dac2	= 0xD1,
+	ratio						= 0x95,
+	sigma						= 0x96
 };
 
 bool communication_protocol::ID_hash_table_init() {
@@ -269,6 +271,8 @@ bool communication_protocol::ID_hash_table_init() {
     communication_protocol::ID_hash_table::ID_tree[0xBA].func_ptr_data = &control_system::set_open_loop_input_step_time;
     communication_protocol::ID_hash_table::ID_tree[0xC9].func_ptr_data = &control_system::set_deadzone_compensation_dac1;
     communication_protocol::ID_hash_table::ID_tree[0xD1].func_ptr_data = &control_system::set_deadzone_compensation_dac2;
+	communication_protocol::ID_hash_table::ID_tree[0x95].func_ptr_data = &controller::set_ratio;
+	communication_protocol::ID_hash_table::ID_tree[0x96].func_ptr_data = &controller::set_sigma;
 	
 
     return true;

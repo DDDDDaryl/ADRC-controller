@@ -17,6 +17,8 @@
 #include "adc.h"
 #include "dac.h"
 #include "info_to_send.h"
+#include "transient_profile.h"
+#include "kalman.h"
 
 
 enum controller_name {
@@ -72,6 +74,9 @@ public:
     static float    set_LADRC_wo(const float& wo);
     static float    set_LADRC_b0(const float& b0);
     static float    set_LADRC_wc_bar(const float& wc_bar);
+	static float	get_LADRC_wc_bar() {
+		return LADRC_wc_bar;
+	}
     static float    set_PID_Kp(const float& kp);
     static float    set_PID_Ki(const float& ki);
     static float    set_PID_Kd(const float& kd);
@@ -110,6 +115,10 @@ private:
     static float    open_loop_input_step_time;
     static float    deadzone_compensation_dac1;
     static float    deadzone_compensation_dac2;
+	
+	static struct kalman klm;
+	static float kalman_Q;
+	static float kalman_R;
 };
 
 class ESO{
@@ -139,6 +148,7 @@ public:
     uint8_t                         set_Init_state(const Matrix& Z0);
     Matrix                          Iterate();
     static Matrix                   get_output();
+	static void 					set_compensation_signal(const float sig);
 
 private:
     uint8_t    observer_order;
@@ -150,6 +160,7 @@ private:
     Matrix Z;
     Matrix ud;
     static Matrix yd; // ESO估计值
+	static float compensation_signal; // 死区偏差补偿
     float beta;
 };
 
@@ -170,6 +181,11 @@ public:
 	float get_Control_Signal() {
 		return Control_Signal;
 	}
+	static float set_ratio(const float& ratio_);
+	static float set_sigma(const float& sigma_);
+	static float set_bl(const float& bl_);
+	static float set_br(const float& br_);
+	
 private:
     float LADRC_Kp;
     float LADRC_Kd;
@@ -178,6 +194,14 @@ private:
     float Transient_profile;
     float u0;
     Matrix transfer_mat;
+	transient_profile tp;
+
+	static float bl;
+	static float br;
+	float ml = 1.0;
+	float mr = 1.0;
+	static float sigma;
+	static float ratio; // ESO补偿信号的比例系数
 
     //Matrix ESO_Output;
 };
@@ -237,10 +261,12 @@ inline float control_system::set_open_loop_input_step_time(const float &time) {
     return open_loop_input_step_time = time;
 }
 inline float control_system::set_deadzone_compensation_dac1(const float &comp) {
-    return deadzone_compensation_dac1 = comp;
+    deadzone_compensation_dac1 = comp;
+	return controller::set_bl(comp);
 }
 inline float control_system::set_deadzone_compensation_dac2(const float &comp) {
-    return deadzone_compensation_dac2 = comp;
+    deadzone_compensation_dac2 = comp;
+	return controller::set_br(comp);
 }
 inline bool control_system::get_system_state() {
     return sys_running_state;

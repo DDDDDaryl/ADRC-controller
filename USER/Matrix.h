@@ -71,6 +71,7 @@ public:
     Matrix operator + (const Matrix &m2);
     Matrix operator - (const Matrix &m2);
     float* operator [] (uint8_t num);
+	const float* operator [] (uint8_t num) const;
     static Matrix cat(uint8_t dem, const Matrix &src_A, const Matrix &src_B);
     void display();
 

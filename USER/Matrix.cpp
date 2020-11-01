@@ -157,3 +157,7 @@ Matrix Matrix::cat(uint8_t dem, const Matrix &src_A, const Matrix &src_B) {
 float* Matrix::operator [] (uint8_t num){
     return this->data[num];
 }
+
+const float* Matrix::operator [] (uint8_t num) const {
+    return this->data[num];
+}

@@ -79,4 +79,5 @@
   ..\FWLIB\inc\stm32f4xx_fsmc.h ..\SYSTEM\sys\sys.h \
   ..\HARDWARE\LED\led.h ..\USER\info_to_send.h ..\USER\Matrix.h \
   ..\HARDWARE\ADC\adc.h ..\HARDWARE\DMA\dma.h ..\HARDWARE\DAC\dac.h \
-  ..\USER\info_to_send.h ..\SYSTEM\delay\delay.h ..\HARDWARE\KEY\key.h
+  ..\USER\info_to_send.h ..\USER\transient_profile.h ..\USER\kalman.h \
+  ..\SYSTEM\delay\delay.h ..\HARDWARE\KEY\key.h

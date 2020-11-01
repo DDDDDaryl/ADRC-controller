@@ -3,6 +3,9 @@
 //
 
 #include "objects.h"
+#include "deadzone_compensation.h"
+
+
 
 bool control_system::sys_running_state          = true;
 float control_system::Sample_Rate_of_Sensor_Hz  = 1000;
@@ -24,17 +27,29 @@ float control_system::open_loop_input_step_amp  = 0;
 float control_system::open_loop_input_step_time = 0;
 float control_system::deadzone_compensation_dac1= 0;
 float control_system::deadzone_compensation_dac2= 0;
-float control_system::reference                 = 0;
+float control_system::reference                 = 1;
 float control_system::sensor_voltage_V          = 0;
 float control_system::control_signal_V          = 0;
+float ESO::compensation_signal					= 0;
+float controller::sigma 						= 1;
+float controller::ratio							= 1;
+float controller::bl							= 0;
+float controller::br							= 0;
 Matrix ESO::yd(3, 1);
 
-control_system::control_system(){
-    feedback_to_ESO          = 0;
+float control_system::kalman_Q = 0.5;
+float control_system::kalman_R = 25;
+
+//kalman control_system::klm(kalman_Q, kalman_R, (static_cast<float>(Get_Adc_Average(3, 10)) / 4095.0f) * 3.3f);
+kalman control_system::klm(kalman_Q, kalman_R, 0);
+
+control_system::control_system() {
+    feedback_to_ESO = 0;
 }
 
 float control_system::update_sensor_voltage_V() {
-	sensor_voltage_V = (static_cast<float>(Get_Adc(3)) / 4095.0f) * 3.3f;
+	sensor_voltage_V = (static_cast<float>(Get_Adc_Average(3, 10)) / 4095.0f) * 3.3f;
+	sensor_voltage_V = klm.iterate(sensor_voltage_V);
 	//printf("sensor_voltage_V = %f\r\n", sensor_voltage_V);
 	return sensor_voltage_V;
 }
@@ -119,7 +134,8 @@ Matrix ESO::Iterate() {
     switch(control_system::controller_type){
         case LADRC:{
 			control_system::update_sensor_voltage_V();
-            ud = {{control_system::control_signal_V}, {control_system::sensor_voltage_V}};
+//            ud = {{control_system::control_signal_V}, {control_system::sensor_voltage_V}};
+			ud = {{control_system::control_signal_V + compensation_signal}, {control_system::sensor_voltage_V}};
             Z_next = A*Z + B*ud;
             yd = C*Z+D*ud;
             Z = Z_next;
@@ -142,7 +158,11 @@ Matrix ESO::Iterate() {
     }
 }
 
-controller::controller() {
+void ESO::set_compensation_signal(const float sig) {
+	compensation_signal = sig;
+}
+
+controller::controller() : tp(){
     LADRC_Kd = 0;
     LADRC_Kp = 0;
     Output_Error = 0;
@@ -155,6 +175,7 @@ controller::controller() {
 uint8_t controller::Parameter_init() {
     switch(control_system::controller_type){
         case LADRC:{
+			tp.init( pow(control_system::get_LADRC_wc_bar() / 1.14, 2), 1.0f / control_system::get_Sample_Rate_Hz() );
             Transient_profile = control_system::reference;
             Output_Error = 0;
             LADRC_Kp = (float)pow(control_system::LADRC_wc, 2);
@@ -170,11 +191,26 @@ uint8_t controller::Parameter_init() {
 Matrix controller::Iterate(const Matrix& ESO_y, const float& ref) {
     switch(control_system::controller_type){
         case LADRC:{
-			Output_Error = control_system::get_reference() - control_system::get_sensor_voltage_V();
-			Control_Signal = (transfer_mat*(Matrix::cat(2,Matrix{{ref}}, ESO_y)))[0][0];
-			auto constrained_ctrl_sig = Control_Signal < 0 ? max(Control_Signal, -3.3f) : min(Control_Signal, 3.3f);
+			Transient_profile = tp.iter( control_system::get_reference() );
+			//Output_Error = control_system::get_reference() - control_system::get_sensor_voltage_V();
+			Output_Error = Transient_profile - control_system::get_sensor_voltage_V();
+			
+			
+			//Control_Signal = (transfer_mat*(Matrix::cat(2,Matrix{{ref}}, ESO_y)))[0][0];
+			Control_Signal = (transfer_mat*(Matrix::cat(2,Matrix{{Transient_profile}}, ESO_y)))[0][0];
+			
+			auto comp_Control_Signal = deadzoneInverse(Control_Signal, mr, br, ml, bl, sigma); //ËÀÇø¿ª»·²¹³¥
+			ESO::set_compensation_signal(delta_u(comp_Control_Signal, Transient_profile - ESO_y[0][0], ratio));
+			
+			auto constrained_ctrl_sig = comp_Control_Signal < 0 ? 
+				max(comp_Control_Signal, -3.3f) : 
+				min(comp_Control_Signal, 3.3f);
+			Control_Signal = Control_Signal < 0 ?
+			max(Control_Signal, -3.3f) : min(Control_Signal, 3.3f);
+			//Control_Signal = constrained_ctrl_sig;
 			set_output(constrained_ctrl_sig);
             return {{Control_Signal}};
+			//return {{constrained_ctrl_sig}};
         }
         case PID:{
             return transfer_mat*ESO_y;
@@ -210,6 +246,22 @@ float controller::get_(const string& member_name) {
         return 0;
     }
 
+}
+
+float controller::set_ratio(const float& ratio_) {
+	return ratio = ratio_;
+}
+
+float controller::set_sigma(const float& sigma_) {
+	return sigma = sigma_;
+}
+
+float controller::set_bl(const float& bl_) {
+	return bl = bl_;
+}
+
+float controller::set_br(const float& br_) {
+	return br = br_;
 }
 
 

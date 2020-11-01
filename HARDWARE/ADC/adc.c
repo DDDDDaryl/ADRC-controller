@@ -64,8 +64,12 @@ u16 Get_Adc(u8 ch)
 	ADC_SoftwareStartConv(ADC1);		//使能指定的ADC1的软件转换启动功能	
 	 
 	while(!ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC ));//等待转换结束
+	
+	u16 res = ADC_GetConversionValue(ADC1);
+	
+	//printf("ADC: %d\r\n", res);
 
-	return ADC_GetConversionValue(ADC1);	//返回最近一次ADC1规则组的转换结果
+	return res;	//返回最近一次ADC1规则组的转换结果
 }
 //获取通道ch的转换值，取times次,然后平均 
 //ch:通道编号
@@ -78,7 +82,7 @@ u16 Get_Adc_Average(u8 ch,u16 times)
 	for(t=0;t<times;t++)
 	{
 		temp_val+=Get_Adc(ch);
-		delay_ms(5);
+		//delay_ms(1);
 	}
 	return temp_val/times;
 } 

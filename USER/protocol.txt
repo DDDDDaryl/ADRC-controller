@@ -44,4 +44,6 @@ ID命名规则：
 	open_loop_input_step_time	1 0 11, 1 010	0xBA
 	deadzone_compensation_dac1	1 1 00, 1 001	0xC9
 	deadzone_compensation_dac2	1 1 01, 0 001	0xD1
+	ratio						1 0 01, 0 101	0x95
+	sigma						1 0 01, 0 110   0x96
 	

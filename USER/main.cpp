@@ -19,7 +19,6 @@ extern u8  Tim2Flag;
 
 int main(){
 /*----------------------类实例化-----------------------*/
-	
     control_system sys;
 
     C__init();
@@ -82,6 +81,7 @@ int main(){
 		
         while( control_system::get_system_state() ){//系统运行中
             /*---------------------------串口接收数据解析---------------------------*/
+			
             if(C__get_PC_parse_flag() == true){                
                 printf("PC Message received.\r\n");
                 USART_RX_STA = 0;
@@ -114,6 +114,7 @@ int main(){
 	//								auto output = ESO::get_output();
 	//								printf("output = ");
 	//								output.display();
+									
 									
 									float u = control_system::update_control_signal_V(ctrl.Iterate(ESO::get_output(), control_system::get_reference())[0][0]);
 									ESO_3rd.Iterate();//得到当前输出

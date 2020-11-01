@@ -423,6 +423,36 @@
               <FileType>5</FileType>
               <FilePath>.\info_to_send.h</FilePath>
             </File>
+            <File>
+              <FileName>transient_profile.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\transient_profile.h</FilePath>
+            </File>
+            <File>
+              <FileName>transient_profile.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\transient_profile.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>deadzone_compensation.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\deadzone_compensation.h</FilePath>
+            </File>
+            <File>
+              <FileName>deadzone_compensation.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\deadzone_compensation.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>kalman.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\kalman.h</FilePath>
+            </File>
+            <File>
+              <FileName>kalman.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\kalman.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

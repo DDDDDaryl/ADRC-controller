@@ -1,1 +1,1 @@
-../obj/kalman.o: kalman.c ..\USER\kalman.h
+../obj/kalman.o: kalman.cpp ..\USER\kalman.h
