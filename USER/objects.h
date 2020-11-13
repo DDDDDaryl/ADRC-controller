@@ -43,6 +43,7 @@ class ESO;
 class controller;
 class communication_protocol;
 
+
 class control_system {
 public:
     
@@ -88,7 +89,11 @@ public:
     static float    set_deadzone_compensation_dac2(const float& comp);
     static uint8_t  set_controller_type(const uint8_t& type);
     static uint8_t  set_open_loop_input_type(const uint8_t & type);
+    
+    static bool is_rst_needed();
+    static void clear_rst_flag();
     //vector<vector<float>>   get_Input_for_ESO(const string& ESO_type);//更新ESO的输入
+    
 
 private:
     static bool     sys_running_state;
@@ -119,6 +124,9 @@ private:
 	static struct kalman klm;
 	static float kalman_Q;
 	static float kalman_R;
+    
+    static bool reset_flag;
+    
 };
 
 class ESO{
@@ -149,6 +157,7 @@ public:
     Matrix                          Iterate();
     static Matrix                   get_output();
 	static void 					set_compensation_signal(const float sig);
+          
 
 private:
     uint8_t    observer_order;
@@ -162,6 +171,8 @@ private:
     static Matrix yd; // ESO估计值
 	static float compensation_signal; // 死区偏差补偿
     float beta;
+
+    
 };
 
 class controller {
@@ -228,15 +239,23 @@ inline uint8_t control_system::set_run_time(const uint8_t& time) {
     return run_time = time;
 }
 inline float control_system::set_LADRC_wc(const float& wc) {
+    if (wc != LADRC_wc)
+        reset_flag = true;
     return LADRC_wc = wc;
 }
 inline float control_system::set_LADRC_wo(const float& wo) {
+    if (wo != LADRC_wo)
+        reset_flag = true;
     return LADRC_wo = wo;
 }
 inline float control_system::set_LADRC_b0(const float& b0) {
+    if (b0 != LADRC_b0)
+        reset_flag = true;
     return LADRC_b0 = b0;
 }
 inline float control_system::set_LADRC_wc_bar(const float &wc_bar) {
+    if (wc_bar != LADRC_wc_bar)
+        reset_flag = true;
     return LADRC_wc_bar = wc_bar;
 }
 inline float control_system::set_PID_Kp(const float &kp) {
@@ -305,169 +324,6 @@ inline float control_system::get_control_signal_V(){
     return control_signal_V;
 }
 
-//template<typename T>
-//vector<vector<T> > ESO::Mat_product(vector<vector<T> > &ans, const vector<vector<T> > &X, const vector<vector<T> > &Y) {
-//    uint8_t column_A = X.size();
-//    uint8_t row_A    = X[0].size();
-//    uint8_t column_B = Y.size();
-//    uint8_t row_B    = Y[0].size();
-//    if(column_A!=row_B){
-//        if(column_A*row_A==1){
-//            ans.resize(column_B, vector<T>(row_B,0));
-//            for(uint8_t cB = 0; cB < column_B; ++cB){
-//                for(uint8_t rB = 0; rB < row_B; ++rB){
-//                    ans[cB][rB] = X[0][0]*Y[cB][rB];
-//                }
-//            }
-//        }
-//        else if(column_B*row_B==1){
-//            ans.resize(column_A, vector<T>(row_A,0));
-//            for(uint8_t cA = 0; cA < column_B; ++cA){
-//                for(uint8_t rA = 0; rA < row_B; ++rA){
-//                    ans[cA][rA] = X[cA][rA]*Y[0][0];
-//                }
-//            }
-//        }
-//        else{
-//            ans.resize(0, vector<T>(0));
-//            printf("ESO::Mat_product Error: Mismatch of input matrices degree.\r\n");
-//        }
-//        return ans;
-//    }
-//    ans.resize(column_B, vector<T>(row_A,0));
-//    for(uint8_t cB = 0; cB < column_B; ++cB){
-//        for(uint8_t rA = 0; rA < row_A; ++rA){
-//            T tmp = 0;
-//            for(uint8_t cA = 0; cA < column_A; ++cA){
-//                tmp += X[cA][rA]*Y[cB][cA];
-//            }
-//            ans[cB][rA] = tmp;
-//        }
-//    }
-//    return ans;
-//}
-//
-//template<typename T>
-//vector<vector<T> > ESO::Mat_plus(vector<vector<T> > &ans, const vector<vector<T> > &X, const vector<vector<T> > &Y){
-//    uint8_t column_A = X.size();
-//    uint8_t row_A    = X[0].size();
-//    uint8_t column_B = Y.size();
-//    uint8_t row_B    = Y[0].size();
-//    if(!(column_A == column_B && row_A == row_B)){
-//        ans.resize(0, vector<T>(0));
-//        printf("ESO::Mat_plus Error: Mismatch of input matrices degree.\r\n");
-//        return ans;
-//    }
-//    ans.resize(column_A, vector<T>(row_A, 0));
-//    for(uint8_t m=0; m<column_A; ++m){
-//        for(uint8_t n=0; n<row_A; ++n){
-//            ans[m][n] = X[m][n] + Y[m][n];
-//        }
-//    }
-//    return ans;
-//}
-//
-//template<typename T>
-//vector<vector<T> > ESO::Mat_minus(vector<vector<T> > &ans, const vector<vector<T> > &X, const vector<vector<T> > &Y){
-//    uint8_t column_A = X.size();
-//    uint8_t row_A    = X[0].size();
-//    uint8_t column_B = Y.size();
-//    uint8_t row_B    = Y[0].size();
-//    if(!(column_A == column_B && row_A == row_B)){
-//        ans.resize(0, vector<T>(0));
-//        printf("ESO::Mat_minus Error: Mismatch of input matrices degree.\r\n");
-//        return ans;
-//    }
-//    ans.resize(column_A, vector<T>(row_A, 0));
-//    for(uint8_t m=0; m<column_A; ++m){
-//        for(uint8_t n=0; n<row_A; ++n){
-//            ans[m][n] = X[m][n] - Y[m][n];
-//        }
-//    }
-//    return ans;
-//}
-//
-//template<typename T>
-//vector<vector<T>>
-//ESO::Mat_cat(uint8_t type, vector<vector<T>> &ans, const vector<vector<T>> &X, const vector<vector<T>> &Y) {
-//    uint8_t column_A = X.size();
-//    uint8_t row_A    = X[0].size();
-//    uint8_t column_B = Y.size();
-//    uint8_t row_B    = Y[0].size();
-//    if(type == 1){
-//        if(row_A != row_B){
-//            printf("ESO::Mat_cat Error: Input Matrices with different row numbers. Exit processing.\r\n");
-//            ans.resize(0, vector<T>(0));
-//            return ans;
-//        }
-//        ans.resize(0, vector<T>(0));
-//        for(uint8_t n=0; n<column_A; ++n){
-//            ans.push_back(X[n]);
-//        }
-//        for(uint8_t n=0; n<column_B; ++n){
-//            ans.push_back(Y[n]);
-//        }
-//    }
-//    else if(type == 2){
-//        if(column_A != column_B){
-//            printf("ESO::Mat_cat Error: Input Matrices with different column numbers. Exit processing.\r\n");
-//            ans.resize(0, vector<T>(0));
-//            return ans;
-//        }
-//        ans.resize(0, vector<T>(0));
-//        for(uint8_t i=0; i<column_A; ++i){
-//            vector<T> tmp(0);
-//            for(uint8_t n=0; n<(row_A+row_B); ++n){
-//                tmp.resize(0);
-//                if(n<row_A){
-//                    for(auto m:X[n]){
-//                        tmp.push_back(m);
-//                    }
-//                }
-//                else{
-//                    for(auto m:Y[n-row_A]){
-//                        tmp.push_back(m);
-//                    }
-//                }
-//            }
-//            ans.push_back(tmp);
-//        }
-//    }
-//    else{
-//        printf("ESO::Mat_cat Error: Wrong input type. Exit processing.\r\n");
-//        ans.resize(0, vector<T>(0));
-//        return ans;
-//    }
-//    return ans;
-//}
-//
-//template<typename T>
-//uint8_t ESO::Mat_print(const string& str, const vector<vector<T>> &X) {
-//    uint8_t column_A = X.size();
-//    uint8_t row_A    = X[0].size();
-//    printf("%s =\r\n", str.c_str());
-//    for(uint8_t i=0; i<row_A; ++i){
-//        for(uint8_t j=0; j<column_A; ++j){
-//            printf("%f", X[j][i]);
-//            printf(", ");
-//        }
-//        printf("\r\n");
-//    }
-//    return 0;
-//}
-//
-//template<typename T>
-//vector<vector<T>> ESO::Mat_copy(vector<vector<T>> &blank, const vector<vector<T>> &obj) {
-//    uint8_t column = obj.size();
-//    uint8_t row    = obj[0].size();
-//    blank.resize(column, vector<T>(row));
-//    for(uint8_t i=0; i<column; ++i){
-//        for(uint8_t j=0; j<row; ++j){
-//            blank[i][j] = obj[i][j];
-//        }
-//    }
-//    return blank;
-//}
 
 inline Matrix ESO::get_output() {
     return yd;
@@ -478,5 +334,15 @@ inline float control_system::update_control_signal_V(const float& u){
 }
 
 info &pack_to_send(controller &ctrl);
+
+class error_evaluate {
+private:
+    float beta = 0.95;
+    float curr_avg = 0;
+    float threashold = 0.02;
+
+public:
+    float iterate(float new_err);
+};
 
 #endif //WEEDER_CONTROLLER_OBJECTS_H

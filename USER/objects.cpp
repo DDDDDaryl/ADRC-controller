@@ -30,6 +30,8 @@ float control_system::deadzone_compensation_dac2= 0;
 float control_system::reference                 = 1;
 float control_system::sensor_voltage_V          = 0;
 float control_system::control_signal_V          = 0;
+bool control_system::reset_flag                 = false;
+
 float ESO::compensation_signal					= 0;
 float controller::sigma 						= 1;
 float controller::ratio							= 1;
@@ -40,8 +42,18 @@ Matrix ESO::yd(3, 1);
 float control_system::kalman_Q = 0.5;
 float control_system::kalman_R = 25;
 
-//kalman control_system::klm(kalman_Q, kalman_R, (static_cast<float>(Get_Adc_Average(3, 10)) / 4095.0f) * 3.3f);
 kalman control_system::klm(kalman_Q, kalman_R, 0);
+
+bool suspend_flag = false;
+error_evaluate ee;
+
+float error_evaluate::iterate(float new_err) {
+    curr_avg = beta * curr_avg + (1.0f - beta) * fabs(new_err);
+    //printf("avg = %f\r\n", curr_avg);
+    if (fabs(curr_avg) <= threashold) suspend_flag = true;
+    else suspend_flag = false;
+    return curr_avg;
+}
 
 control_system::control_system() {
     feedback_to_ESO = 0;
@@ -72,21 +84,21 @@ ESO::ESO(uint8_t order) {
     Lc=Matrix(order, 1);
     Z =Matrix(order, 1);
     ud=Matrix(2,1);
-    beta = exp(-control_system::LADRC_wo*(1.0f/control_system::Sample_Rate_Hz));
+    
 }
 
 uint8_t ESO::LADRC_based_current_DESO_init() {
     
-	
+	beta = exp(-control_system::LADRC_wo*(1.0f/control_system::Sample_Rate_Hz));
     Matrix phi{{1.0f, (1.0f/control_system::Sample_Rate_Hz), powf(control_system::Sample_Rate_Hz, -2)*0.5f},
                {0.0f, 1.0f, (1.0f/control_system::Sample_Rate_Hz)},
                {0.0f, 0.0f, 1.0f}};
     Lc = {{1-powf(beta,3)},
-          {(2.0f-3.0f*beta+powf(beta,3))*control_system::Sample_Rate_Hz},
+          {1.5f * (powf(beta,3) - powf(beta, 2) - beta + 1) * control_system::Sample_Rate_Hz},
           {powf((1-beta),3)*powf(control_system::Sample_Rate_Hz,2)}};
     Matrix Lp;
     Lp = phi*Lc;
-    Matrix gamma{{control_system::LADRC_b0*powf(1.0f/control_system::Sample_Rate_Hz, 2)*0.5f},
+    Matrix gamma{{control_system::LADRC_b0*powf(control_system::Sample_Rate_Hz, -2)*0.5f},
                  {control_system::LADRC_b0*(1.0f/control_system::Sample_Rate_Hz)},
                  {0.0f}};     
     Matrix H{{1.0f, 0.0f, 0.0f}};
@@ -133,13 +145,17 @@ Matrix ESO::Iterate() {
 	control_system::update_sensor_voltage_V();
     switch(control_system::controller_type){
         case LADRC:{
-			control_system::update_sensor_voltage_V();
+			//control_system::update_sensor_voltage_V();
 //            ud = {{control_system::control_signal_V}, {control_system::sensor_voltage_V}};
-			ud = {{control_system::control_signal_V + compensation_signal}, {control_system::sensor_voltage_V}};
-            Z_next = A*Z + B*ud;
-            yd = C*Z+D*ud;
-            Z = Z_next;
-//			printf("A = \r\n");
+            //printf("%x\r\n", suspend_flag);
+            
+            if ( !suspend_flag ) {                
+                ud = {{control_system::get_control_signal_V() + compensation_signal}, {control_system::get_sensor_voltage_V()}};
+                Z_next = (A*Z) + (B*ud);
+                yd = (C*Z) + (D*ud);
+                Z = Z_next;
+            }
+//			printf("A  = \r\n");
 //			A.display();
 //			printf("B = \r\n");
 //			B.display();
@@ -191,12 +207,16 @@ uint8_t controller::Parameter_init() {
 Matrix controller::Iterate(const Matrix& ESO_y, const float& ref) {
     switch(control_system::controller_type){
         case LADRC:{
+            auto sensor = control_system::get_sensor_voltage_V();
+            
 			Transient_profile = tp.iter( control_system::get_reference() );
 			//Output_Error = control_system::get_reference() - control_system::get_sensor_voltage_V();
-			Output_Error = Transient_profile - control_system::get_sensor_voltage_V();
+			Output_Error = Transient_profile - sensor;
+            ee.iterate(Output_Error);
 			
 			
 			//Control_Signal = (transfer_mat*(Matrix::cat(2,Matrix{{ref}}, ESO_y)))[0][0];
+            //使用ESO观测值
 			Control_Signal = (transfer_mat*(Matrix::cat(2,Matrix{{Transient_profile}}, ESO_y)))[0][0];
 			
 			auto comp_Control_Signal = deadzoneInverse(Control_Signal, mr, br, ml, bl, sigma); //死区开环补偿
@@ -206,9 +226,9 @@ Matrix controller::Iterate(const Matrix& ESO_y, const float& ref) {
 				max(comp_Control_Signal, -3.3f) : 
 				min(comp_Control_Signal, 3.3f);
 			Control_Signal = Control_Signal < 0 ?
-			max(Control_Signal, -3.3f) : min(Control_Signal, 3.3f);
+                max(Control_Signal, -3.3f) : min(Control_Signal, 3.3f);
 			//Control_Signal = constrained_ctrl_sig;
-			set_output(constrained_ctrl_sig);
+			set_output(constrained_ctrl_sig); // 设置DAC电压,并适时关闭控制器
             return {{Control_Signal}};
 			//return {{constrained_ctrl_sig}};
         }
@@ -313,5 +333,13 @@ info &pack_to_send(controller &ctrl) {
 //	printf("\r\n");
 	
 	return info_;
+}
+
+bool control_system::is_rst_needed() {
+    return reset_flag;
+}
+
+void control_system::clear_rst_flag() {
+    reset_flag = false;
 }
 

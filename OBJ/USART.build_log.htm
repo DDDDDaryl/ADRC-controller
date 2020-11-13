@@ -3,30 +3,41 @@
 <pre>
 <h1>µVision Build Log</h1>
 <h2>Tool Versions:</h2>
-IDE-Version: ¦ÌVision V5.31.0.0
-Copyright (C) 2020 ARM Ltd and ARM Germany GmbH. All rights reserved.
-License Information: Frank Young,  , LIC=CRMWF-6ACD3-D30M3-AQXIG-BMK30-A69NA
+IDE-Version: ¦ÌVision V5.29.0.0
+Copyright (C) 2019 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: Frank Young,   , LIC=1WSLQ-NAI9J-UMD9A-1939D-K8DHZ-Y1FW1
  
 Tool Versions:
-Toolchain:       MDK-ARM Professional  Version: 5.31.0.0
-Toolchain Path:  F:\keil5\ARM\ARMCLANG\Bin
-C Compiler:      ArmClang.exe V6.14
-Assembler:       Armasm.exe V6.14
-Linker/Locator:  ArmLink.exe V6.14
-Library Manager: ArmAr.exe V6.14
-Hex Converter:   FromElf.exe V6.14
-CPU DLL:         SARMCM3.DLL V5.31.0.0
+Toolchain:       MDK-ARM Professional  Version: 5.29.0.0
+Toolchain Path:  E:\Keil-ARM_529\ARM\ARMCLANG\Bin
+C Compiler:      ArmClang.exe V6.13.1
+Assembler:       Armasm.exe V6.13.1
+Linker/Locator:  ArmLink.exe V6.13.1
+Library Manager: ArmAr.exe V6.13.1
+Hex Converter:   FromElf.exe V6.13.1
+CPU DLL:         SARMCM3.DLL V5.29.0.0
 Dialog DLL:      DCM.DLL V1.17.3.0
-Target DLL:      Segger\JL2CM3.dll V2.99.38.0
-Dialog DLL:      TCM.DLL V1.46.0.0
+Target DLL:      Segger\JL2CM3.dll V2.99.36.0
+Dialog DLL:      TCM.DLL V1.36.5.0
  
 <h2>Project:</h2>
 C:\Users\Frank Young\Desktop\ADRC-controller\ADRC-controller\USER\USART.uvprojx
-Project File Date:  11/01/2020
+Project File Date:  11/11/2020
 
 <h2>Output:</h2>
-*** Using Compiler 'V6.14', folder: 'F:\keil5\ARM\ARMCLANG\Bin'
+*** Using Compiler 'V6.13.1', folder: 'E:\Keil-ARM_529\ARM\ARMCLANG\Bin'
 Build target 'Control_system'
+main.cpp(5): warning: In file included from...
+../USER/objects.h(15): warning: In file included from...
+../SYSTEM/usart\usart.h(14): warning: In file included from...
+../USER\info_to_send.h(11): warning: typedef requires a name [-Wmissing-declarations]
+typedef struct info {
+^~~~~~~
+main.cpp(107): warning: switch condition has boolean value [-Wswitch-bool]
+                                        switch (control_system::get_Is_close_loop()){
+                                        ^       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2 warnings generated.
+compiling main.cpp...
 objects.cpp(5): warning: In file included from...
 ../USER/objects.h(15): warning: In file included from...
 ../SYSTEM/usart\usart.h(14): warning: In file included from...
@@ -35,10 +46,18 @@ typedef struct info {
 ^~~~~~~
 1 warning generated.
 compiling objects.cpp...
+protocol.cpp(5): warning: In file included from...
+../USER/objects.h(15): warning: In file included from...
+../SYSTEM/usart\usart.h(14): warning: In file included from...
+../USER\info_to_send.h(11): warning: typedef requires a name [-Wmissing-declarations]
+typedef struct info {
+^~~~~~~
+1 warning generated.
+compiling protocol.cpp...
 linking...
-Program Size: Code=31146 RO-data=1298 RW-data=72 ZI-data=10000  
+Program Size: Code=31434 RO-data=1298 RW-data=84 ZI-data=10012  
 FromELF: creating hex file...
-"..\OBJ\USART.axf" - 0 Error(s), 1 Warning(s).
+"..\OBJ\USART.axf" - 0 Error(s), 4 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -48,7 +67,8 @@ Package Vendor: Keil
                 STMicroelectronics STM32F4 Series Device Support, Drivers and Examples
 
 <h2>Collection of Component include folders:</h2>
-  F:\keil5\ARM\PACK\Keil\STM32F4xx_DFP\2.5.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include
+  .\RTE\_Control_system
+  E:\Keil-ARM_529\Packs\Keil\STM32F4xx_DFP\2.5.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include
 
 <h2>Collection of Component Files used:</h2>
 Build Time Elapsed:  00:00:02

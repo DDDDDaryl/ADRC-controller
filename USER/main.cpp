@@ -29,6 +29,7 @@ int main(){
 
     controller ctrl;
     ctrl.Parameter_init();
+    
 /*----------------------各外设初始化-----------------------*/
 
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);//设置系统中断优先级分组2
@@ -114,10 +115,15 @@ int main(){
 	//								auto output = ESO::get_output();
 	//								printf("output = ");
 	//								output.display();
+                                    if ( control_system::is_rst_needed() ) {
+                                        control_system::clear_rst_flag();
+                                        ctrl.Parameter_init();
+                                        ESO_3rd.LADRC_based_current_DESO_init();
+                                    }
 									
-									
-									float u = control_system::update_control_signal_V(ctrl.Iterate(ESO::get_output(), control_system::get_reference())[0][0]);
 									ESO_3rd.Iterate();//得到当前输出
+									float u = control_system::update_control_signal_V(ctrl.Iterate(ESO::get_output(), control_system::get_reference())[0][0]);
+									
 									auto info_res = pack_to_send(ctrl);
 									my_usart_send_sys_state(&info_res);
 									

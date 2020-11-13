@@ -18,7 +18,7 @@ float deadzoneInverse(float ctrl_signal, float mr, float br, float ml, float bl,
 	return (ctrl_signal + mr * br) * smooth_right(ctrl_signal, sigma)/ mr + (ctrl_signal + ml * bl) * smooth_left(ctrl_signal, sigma) / ml;
 }
 
-float delta_u(float compensated_signal, float error, float ratio) {
-	return -sgn(compensated_signal) * error * ratio;
+float delta_u(float compensated_signal, float error, float ratio) {	
+	return error > 0 ? -sgn(compensated_signal) * error * ratio : sgn(compensated_signal) * error * ratio;
 }
 
