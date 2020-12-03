@@ -8,18 +8,18 @@
 
 
 bool control_system::sys_running_state          = true;
-float control_system::Sample_Rate_of_Sensor_Hz  = 1000;
+float control_system::Sample_Rate_of_Sensor_Hz  = 100;
 float control_system::Sample_Rate_Hz            = 100;
-float control_system::LADRC_wc                  = 15;
-float control_system::LADRC_wo                  = 45;
+float control_system::LADRC_wc                  = 10;
+float control_system::LADRC_wo                  = 100;
 float control_system::LADRC_b0                  = 60;
 float control_system::LADRC_wc_bar              = 4;
 bool control_system::Is_close_loop              = true;
 uint8_t control_system::controller_type         = 0x80;
 uint8_t control_system::open_loop_input_type    = 0x80;
 uint8_t control_system::run_time                = 0;
-float control_system::PID_Kp                    = 0;
-float control_system::PID_Ki                    = 0;
+float control_system::PID_Kp                    = 100;
+float control_system::PID_Ki                    = 1;
 float control_system::PID_Kd                    = 0;
 float control_system::open_loop_input_sine_amp  = 0;
 float control_system::open_loop_input_sine_freq = 0;
@@ -199,16 +199,25 @@ uint8_t controller::Parameter_init() {
             transfer_mat = {{LADRC_Kp/control_system::LADRC_b0, -LADRC_Kp/control_system::LADRC_b0, -LADRC_Kd/control_system::LADRC_b0, -1/control_system::LADRC_b0}};
             break;
         }
+		case PID: {
+//            printf("get_PID_Kp = %f\r\n", control_system::get_PID_Kp());
+//            printf("get_PID_Ki = %f\r\n", control_system::get_PID_Ki());
+//            printf("get_PID_Kd = %f\r\n", control_system::get_PID_Kd());
+//            printf("get_reference = %f\r\n", control_system::get_reference());
+			pid.pid_init(control_system::get_PID_Kp(), control_system::get_PID_Ki(), control_system::get_PID_Kd(), control_system::get_reference());
+			break;
+		}
     }
 
     return 0;
 }
 
 Matrix controller::Iterate(const Matrix& ESO_y, const float& ref) {
+	
+	
     switch(control_system::controller_type){
         case LADRC:{
-            auto sensor = control_system::get_sensor_voltage_V();
-            
+            auto sensor = control_system::get_sensor_voltage_V(); // 获取传感器测量值（已滤波）
 			Transient_profile = tp.iter( control_system::get_reference() );
 			//Output_Error = control_system::get_reference() - control_system::get_sensor_voltage_V();
 			Output_Error = Transient_profile - sensor;
@@ -223,17 +232,33 @@ Matrix controller::Iterate(const Matrix& ESO_y, const float& ref) {
 			ESO::set_compensation_signal(delta_u(comp_Control_Signal, Transient_profile - ESO_y[0][0], ratio));
 			
 			auto constrained_ctrl_sig = comp_Control_Signal < 0 ? 
-				max(comp_Control_Signal, -3.3f) : 
-				min(comp_Control_Signal, 3.3f);
+				fmax(comp_Control_Signal, -3.3f) : 
+				fmin(comp_Control_Signal, 3.3f);
 			Control_Signal = Control_Signal < 0 ?
-                max(Control_Signal, -3.3f) : min(Control_Signal, 3.3f);
+                fmax(Control_Signal, -3.3f) : fmin(Control_Signal, 3.3f);
 			//Control_Signal = constrained_ctrl_sig;
+			/*=================================================================*/
 			set_output(constrained_ctrl_sig); // 设置DAC电压,并适时关闭控制器
+			/*=================================================================*/
             return {{Control_Signal}};
 			//return {{constrained_ctrl_sig}};
         }
         case PID:{
-            return transfer_mat*ESO_y;
+            auto sensor = control_system::update_sensor_voltage_V();            
+            auto ref = control_system::get_reference();
+            
+            Transient_profile = tp.iter( ref );
+			Output_Error = ref - sensor;
+            ee.iterate(Output_Error);
+            
+			Control_Signal =  pid.IncPIDCalc(sensor, ref);
+            //printf("Control_Signal = %f\r\n", Control_Signal);
+//            printf("sensor = %f\r\n", sensor);
+//            printf("ref = %f\r\n", control_system::get_reference());
+			/*=================================================================*/
+			set_output(Control_Signal); // 设置DAC电压,并适时关闭控制器
+			/*=================================================================*/
+            return Matrix{ { Control_Signal } };
         }
         default:{
             printf("controller::Iterate Error: Wrong controller type, \"controller_type\" check is requested.");

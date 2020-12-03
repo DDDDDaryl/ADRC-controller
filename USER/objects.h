@@ -11,7 +11,6 @@
 #include <cmath>
 #include <stdio.h>
 #include <string>
-#include <cmath>
 #include "usart.h"
 #include "Matrix.h"
 #include "adc.h"
@@ -19,6 +18,7 @@
 #include "info_to_send.h"
 #include "transient_profile.h"
 #include "kalman.h"
+#include "pid_controller.h"
 
 
 enum controller_name {
@@ -79,8 +79,11 @@ public:
 		return LADRC_wc_bar;
 	}
     static float    set_PID_Kp(const float& kp);
+	static float	get_PID_Kp();
     static float    set_PID_Ki(const float& ki);
+	static float	get_PID_Ki();
     static float    set_PID_Kd(const float& kd);
+	static float	get_PID_Kd();
     static float    set_open_loop_input_sine_amp(const float& amp);
     static float    set_open_loop_input_sine_freq(const float& freq);
     static float    set_open_loop_input_step_amp(const float& amp);
@@ -214,6 +217,9 @@ private:
 	static float sigma;
 	static float ratio; // ESO补偿信号的比例系数
 
+	
+	class PID pid;
+
     //Matrix ESO_Output;
 };
 
@@ -224,6 +230,8 @@ inline uint8_t control_system::set_Is_close_loop(const uint8_t& yon) {
     return Is_close_loop = yon;
 }
 inline uint8_t control_system::set_controller_type(const uint8_t &type) {
+    if (controller_type != type)
+        reset_flag = true;
     return controller_type = type;
 }
 inline uint8_t control_system::set_open_loop_input_type(const uint8_t &type) {
@@ -259,13 +267,28 @@ inline float control_system::set_LADRC_wc_bar(const float &wc_bar) {
     return LADRC_wc_bar = wc_bar;
 }
 inline float control_system::set_PID_Kp(const float &kp) {
+    if (PID_Kp != kp)
+        reset_flag = true;
     return PID_Kp = kp;
 }
+inline float control_system::get_PID_Kp() {
+	return PID_Kp;
+}
 inline float control_system::set_PID_Ki(const float &ki) {
+    if (PID_Ki != ki)
+        reset_flag = true;
     return PID_Ki = ki;
 }
+inline float control_system::get_PID_Ki() {
+	return PID_Ki;
+}
 inline float control_system::set_PID_Kd(const float &kd) {
+    if (PID_Kd != kd)
+        reset_flag = true;
     return PID_Kd = kd;
+}
+inline float control_system::get_PID_Kd() {
+	return PID_Kd;
 }
 inline float control_system::set_open_loop_input_sine_amp(const float &amp) {
     return open_loop_input_sine_amp = amp;

@@ -452,6 +452,16 @@
               <FileType>8</FileType>
               <FilePath>.\kalman.cpp</FilePath>
             </File>
+            <File>
+              <FileName>pid_controller.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\pid_controller.h</FilePath>
+            </File>
+            <File>
+              <FileName>pid_controller.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\pid_controller.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

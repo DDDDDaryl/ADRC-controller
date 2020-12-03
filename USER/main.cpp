@@ -106,9 +106,11 @@ int main(){
 					
 					switch (control_system::get_Is_close_loop()){
 						case closed_loop:{
+                            
 
 							switch(control_system::get_controller_type()){
 								case LADRC:{
+                                    
 		//                            /*-------------------------------测试部分---------------------------*/
 		//                            auto start = system_clock::now();
 		//                            /*-----------------------------测试区底部---------------------------*/
@@ -116,12 +118,16 @@ int main(){
 	//								printf("output = ");
 	//								output.display();
                                     if ( control_system::is_rst_needed() ) {
+                                        
                                         control_system::clear_rst_flag();
                                         ctrl.Parameter_init();
                                         ESO_3rd.LADRC_based_current_DESO_init();
                                     }
 									
-									ESO_3rd.Iterate();//得到当前输出
+									
+                                    ESO_3rd.Iterate();//得到当前输出
+
+																		
 									float u = control_system::update_control_signal_V(ctrl.Iterate(ESO::get_output(), control_system::get_reference())[0][0]);
 									
 									auto info_res = pack_to_send(ctrl);
@@ -131,7 +137,7 @@ int main(){
 	//								auto ctrl_iter = ctrl.Iterate(output, control_system::get_reference());
 	//								printf("ctrl_iter =\r\n");
 	//								ctrl_iter.display();
-	//								printf("get_sensor_voltage_V = %#1.6f\r\n", control_system::get_sensor_voltage_V());
+									//printf("get_sensor_voltage_V = %#1.6f\r\n", control_system::get_sensor_voltage_V());
 	//								
 	//                                printf("Control Signal = %#1.6f V\r\n", u);
 
@@ -143,6 +149,17 @@ int main(){
 									break;
 								}
 								case PID:{
+                                    if ( control_system::is_rst_needed() ) {
+                                        
+                                        control_system::clear_rst_flag();
+                                        ctrl.Parameter_init();
+                                    }
+                                    
+                                    float u = control_system::update_control_signal_V(ctrl.Iterate(ESO::get_output(), control_system::get_reference())[0][0]);
+                                    
+                                    auto info_res = pack_to_send(ctrl);
+									my_usart_send_sys_state(&info_res);
+                                    //printf("get_sensor_voltage_V = %#1.6f\r\n", control_system::get_sensor_voltage_V());
 									break;
 								}
 							}//switch(sys.get_controller_type())

@@ -75,7 +75,7 @@
   ..\SYSTEM\sys\sys.h ..\HARDWARE\LED\led.h ..\USER\info_to_send.h \
   ..\USER\Matrix.h ..\HARDWARE\ADC\adc.h ..\HARDWARE\DMA\dma.h \
   ..\HARDWARE\DAC\dac.h ..\USER\info_to_send.h \
-  ..\USER\transient_profile.h ..\USER\kalman.h \
+  ..\USER\transient_profile.h ..\USER\kalman.h ..\USER\pid_controller.h \
   E:\Keil-ARM_529\ARM\ARMCLANG\Bin\..\include\libcxx\vector \
   E:\Keil-ARM_529\ARM\ARMCLANG\Bin\..\include\libcxx\__bit_reference \
   E:\Keil-ARM_529\ARM\ARMCLANG\Bin\..\include\libcxx\climits \

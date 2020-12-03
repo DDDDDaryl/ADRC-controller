@@ -8,7 +8,7 @@ extern "C"
 #endif
 	
 	
-typedef struct info {
+struct info {
 	float ref;
 	float transient_profile;
 	float sensor_pos;

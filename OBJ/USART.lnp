@@ -8,6 +8,7 @@
 "..\obj\transient_profile.o"
 "..\obj\deadzone_compensation.o"
 "..\obj\kalman.o"
+"..\obj\pid_controller.o"
 "..\obj\led.o"
 "..\obj\key.o"
 "..\obj\dac.o"
