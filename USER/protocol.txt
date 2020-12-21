@@ -46,4 +46,6 @@ ID命名规则：
 	deadzone_compensation_dac2	1 1 01, 0 001	0xD1
 	ratio						1 0 01, 0 101	0x95
 	sigma						1 0 01, 0 110   0x96
-	
+    st_disturbance_est_gain     1 0 01, 0 111   0x97
+    /*新增：100为ADRC参数编号拓展*/
+	st_need_acc_threashold      1 0 10, 0 001   0xA1

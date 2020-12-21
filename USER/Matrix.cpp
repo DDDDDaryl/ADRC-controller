@@ -49,7 +49,7 @@ Matrix Matrix::operator *(const Matrix &m2)//矩阵乘法的实现
         exit(0);
     }
     int i,j,k;
-    for(i=0;i<this->m;i++)
+    for(i=0;i<this->m;i++) {
         for(j=0;j<m2.n;j++)
         {
             for(k=0;k<this->n;k++)
@@ -58,6 +58,7 @@ Matrix Matrix::operator *(const Matrix &m2)//矩阵乘法的实现
             }
 
         }
+    }
     return m3;
 }
 

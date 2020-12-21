@@ -56,16 +56,20 @@ int main(){
 	
 	//set_output(3.3f);
 	
-
+    int sample_period_in_ms = 1000 / control_system::get_Sample_Rate_Hz();
     while(true) {//之后改成1
 		
+        
     /*---------------------------串口接收数据解析----------------------------*/
         if(C__get_PC_parse_flag() == true){
             USART_RX_STA = 0;
             C__set_PC_parse_flag(false);
             C__parse_PC_msg();
+            /*增加更新采样周期*/
+            sample_period_in_ms = 1000 / control_system::get_Sample_Rate_Hz();
         }
-
+        
+        /*每隔1s发送心跳包（避免上位机线程等待）*/
 		if (!control_system::get_system_state()) {
 			if(Tim2Flag==1) {
 				Tim2Flag = 0;
@@ -89,6 +93,9 @@ int main(){
                 C__set_PC_parse_flag(false);
                 C__parse_PC_msg();
                 
+                /*增加更新采样周期*/
+                sample_period_in_ms = 1000 / control_system::get_Sample_Rate_Hz();
+                
                 continue;
             }
 
@@ -101,7 +108,7 @@ int main(){
             }
             if(Tim2Flag==1) {
 				Tim2Flag = 0;
-				cnt = (cnt + 1) % 20;
+				cnt = (cnt + 1) % sample_period_in_ms;
 				if (!cnt) {
 					
 					switch (control_system::get_Is_close_loop()){
@@ -122,6 +129,7 @@ int main(){
                                         control_system::clear_rst_flag();
                                         ctrl.Parameter_init();
                                         ESO_3rd.LADRC_based_current_DESO_init();
+                                        
                                     }
 									
 									

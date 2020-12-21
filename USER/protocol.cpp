@@ -245,7 +245,9 @@ enum ID_table {
 	deadzone_compensation_dac1	= 0xC9,
 	deadzone_compensation_dac2	= 0xD1,
 	ratio						= 0x95,
-	sigma						= 0x96
+	sigma						= 0x96,
+    st_disturbance_est_gain     = 0x97,
+    st_need_acc_threashold      = 0xA1
 };
 
 bool communication_protocol::ID_hash_table_init() {
@@ -273,7 +275,8 @@ bool communication_protocol::ID_hash_table_init() {
     communication_protocol::ID_hash_table::ID_tree[0xD1].func_ptr_data = &control_system::set_deadzone_compensation_dac2;
 	communication_protocol::ID_hash_table::ID_tree[0x95].func_ptr_data = &controller::set_ratio;
 	communication_protocol::ID_hash_table::ID_tree[0x96].func_ptr_data = &controller::set_sigma;
-	
+    communication_protocol::ID_hash_table::ID_tree[0x97].func_ptr_data = &ESO::set_st_disturbance_est_gain;
+	communication_protocol::ID_hash_table::ID_tree[0xA1].func_ptr_data = &ESO::set_st_need_acc_threashold;
 
     return true;
 }

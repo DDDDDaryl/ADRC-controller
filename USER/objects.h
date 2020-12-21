@@ -136,30 +136,18 @@ class ESO{
 public:
     explicit ESO(uint8_t order);
 
-//    template <typename T>
-//    vector<vector<T> > Mat_product(vector<vector<T>> &ans, const vector<vector<T>> &X, const vector<vector<T>> &Y);
-//
-//    template <typename T>
-//    vector<vector<T> > Mat_plus(vector<vector<T>> &ans, const vector<vector<T>> &X, const vector<vector<T>> &Y);
-//
-//    template <typename T>
-//    vector<vector<T> > Mat_minus(vector<vector<T>> &ans, const vector<vector<T>> &X, const vector<vector<T>> &Y);
-//
-//    template <typename T>
-//    vector<vector<T> > Mat_cat(uint8_t type, vector<vector<T>> &ans, const vector<vector<T>> &X, const vector<vector<T>> &Y);
-//
-//    template <typename T>
-//    uint8_t Mat_print(const string& str, const vector<vector<T>> &X);
-//
-//    template <typename T>
-//    vector<vector<T> > Mat_copy(vector<vector<T>> &blank, const vector<vector<T>> &obj);
-
     uint8_t                         LADRC_based_current_DESO_init();
     Matrix                          get_(char Mat);
     uint8_t                         set_Init_state(const Matrix& Z0);
     Matrix                          Iterate();
     static Matrix                   get_output();
 	static void 					set_compensation_signal(const float sig);
+    float                           set_disturbance_est_gain(float deg);
+    
+    static float                    set_st_need_acc_threashold(const float&);
+    static float                    set_st_disturbance_est_gain(const float&);
+    //static void                     set_fl_param_update(bool fl);
+    void check_for_param_update();
           
 
 private:
@@ -168,13 +156,34 @@ private:
     Matrix B;
     Matrix C;
     Matrix D;
+    /*跨越死区时采用的矩阵*/
+    Matrix acc_A;
+    Matrix acc_B;
+    Matrix acc_C;
+    Matrix acc_D;
+    
     Matrix Lc;
+    Matrix acc_Lc;
     Matrix Z;
     Matrix ud;
     static Matrix yd; // ESO估计值
 	static float compensation_signal; // 死区偏差补偿
     float beta;
+    float acc_beta;
 
+    /*根据ESO的速度估计判断被控对象是否处在死区*/
+    bool fl_need_acc;
+    float avg_speed_est;
+    float new_sample_weight;
+    float need_acc_threashold;
+    static float st_need_acc_threashold;
+    
+    /*lc_3增益*/
+    float disturbance_est_gain;
+    static float st_disturbance_est_gain;
+    
+    /*方便更新参数加入的中间层标志*/
+    static bool fl_param_update;
     
 };
 
@@ -360,7 +369,7 @@ info &pack_to_send(controller &ctrl);
 
 class error_evaluate {
 private:
-    float beta = 0.95;
+    float beta = 0.975;
     float curr_avg = 0;
     float threashold = 0.02;
 

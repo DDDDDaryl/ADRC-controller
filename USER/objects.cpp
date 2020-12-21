@@ -8,7 +8,7 @@
 
 
 bool control_system::sys_running_state          = true;
-float control_system::Sample_Rate_of_Sensor_Hz  = 100;
+float control_system::Sample_Rate_of_Sensor_Hz  = 50;
 float control_system::Sample_Rate_Hz            = 100;
 float control_system::LADRC_wc                  = 10;
 float control_system::LADRC_wo                  = 100;
@@ -44,6 +44,10 @@ float control_system::kalman_R = 25;
 
 kalman control_system::klm(kalman_Q, kalman_R, 0);
 
+float ESO::st_need_acc_threashold = 0.1;
+float ESO::st_disturbance_est_gain = 1;
+bool ESO::fl_param_update = false;
+
 bool suspend_flag = false;
 error_evaluate ee;
 
@@ -75,29 +79,40 @@ float control_system::update_sensor_voltage_V() {
 //    return ESO_Input;
 //}
 
-ESO::ESO(uint8_t order) {
+ESO::ESO(uint8_t order) : disturbance_est_gain(0.0f), fl_need_acc(false), avg_speed_est(0.0f), new_sample_weight(0.05f), need_acc_threashold(0.1f) {
     observer_order = order;
     A = Matrix(observer_order, observer_order);
     B = Matrix(observer_order, 2);
     C = Matrix(order, order);
     D = Matrix(order, 2);
+    acc_A = Matrix(observer_order, observer_order);
+    acc_B = Matrix(observer_order, 2);
+    acc_C = Matrix(order, order);
+    acc_D = Matrix(order, 2);
     Lc=Matrix(order, 1);
+    acc_Lc=Matrix(order, 1);
     Z =Matrix(order, 1);
     ud=Matrix(2,1);
     
 }
 
 uint8_t ESO::LADRC_based_current_DESO_init() {
+	beta = expf(-control_system::LADRC_wo*(1.0f/control_system::Sample_Rate_Hz));
+    acc_beta = disturbance_est_gain * beta;
     
-	beta = exp(-control_system::LADRC_wo*(1.0f/control_system::Sample_Rate_Hz));
     Matrix phi{{1.0f, (1.0f/control_system::Sample_Rate_Hz), powf(control_system::Sample_Rate_Hz, -2)*0.5f},
                {0.0f, 1.0f, (1.0f/control_system::Sample_Rate_Hz)},
                {0.0f, 0.0f, 1.0f}};
-    Lc = {{1-powf(beta,3)},
-          {1.5f * (powf(beta,3) - powf(beta, 2) - beta + 1) * control_system::Sample_Rate_Hz},
-          {powf((1-beta),3)*powf(control_system::Sample_Rate_Hz,2)}};
-    Matrix Lp;
-    Lp = phi*Lc;
+    Lc = {{1.0f - powf(beta,3)},
+          {1.5f * (powf(beta,3) - powf(beta, 2) - beta + 1.0f) * control_system::Sample_Rate_Hz},
+          {powf((1.0f - beta), 3) * powf(control_system::Sample_Rate_Hz, 2)}};
+    acc_Lc = {{1.0f - powf(acc_beta,3)},
+          {1.5f * (powf(acc_beta,3) - powf(acc_beta, 2) - acc_beta + 1) * control_system::Sample_Rate_Hz},
+          {powf((1-acc_beta),3) * powf(control_system::Sample_Rate_Hz,2)}};
+    
+    Matrix Lp, acc_Lp;
+    Lp = phi * Lc;
+    acc_Lp = phi * acc_Lc;
     Matrix gamma{{control_system::LADRC_b0*powf(control_system::Sample_Rate_Hz, -2)*0.5f},
                  {control_system::LADRC_b0*(1.0f/control_system::Sample_Rate_Hz)},
                  {0.0f}};     
@@ -108,7 +123,17 @@ uint8_t ESO::LADRC_based_current_DESO_init() {
     B = Matrix::cat(1, gamma-Lp*J, Lp);
     C = I_3rd-Lc*H;
     D = Matrix::cat(1,Matrix(3,1)-Lc*J, Lc);
+    acc_A = phi-(acc_Lp*H);
+    acc_B = Matrix::cat(1, gamma-acc_Lp*J, acc_Lp);
+    acc_C = I_3rd-acc_Lc*H;
+    acc_D = Matrix::cat(1,Matrix(3,1)-acc_Lc*J, acc_Lc);
     return 0;
+}
+
+float ESO::set_disturbance_est_gain(float deg) {
+    disturbance_est_gain = deg;
+    LADRC_based_current_DESO_init();
+    return deg;
 }
 
 Matrix ESO::get_(char Mat) {
@@ -142,7 +167,7 @@ uint8_t ESO::set_Init_state(const Matrix& Z0) {
 
 Matrix ESO::Iterate() {
     Matrix Z_next;
-	control_system::update_sensor_voltage_V();
+	auto sensor = control_system::update_sensor_voltage_V();
     switch(control_system::controller_type){
         case LADRC:{
 			//control_system::update_sensor_voltage_V();
@@ -150,10 +175,28 @@ Matrix ESO::Iterate() {
             //printf("%x\r\n", suspend_flag);
             
             if ( !suspend_flag ) {                
-                ud = {{control_system::get_control_signal_V() + compensation_signal}, {control_system::get_sensor_voltage_V()}};
-                Z_next = (A*Z) + (B*ud);
-                yd = (C*Z) + (D*ud);
+                ud = {{control_system::get_control_signal_V() + compensation_signal}, {sensor}};
+                /*更新参数*/
+                check_for_param_update();
+                /*计算并更新速度估计平均*/
+                avg_speed_est = (1 - new_sample_weight) * avg_speed_est + new_sample_weight * yd[1][0];
+                
+                if ( fabs(avg_speed_est) < need_acc_threashold)
+                    fl_need_acc = true;
+                else
+                    fl_need_acc = false;
+                
+                if ( !fl_need_acc ) {
+                    Z_next = (A*Z) + (B*ud);
+                    yd = (C*Z) + (D*ud);
+                } else {
+                    
+                    Z_next = (acc_A*Z) + (acc_B*ud);
+                    yd = (acc_C*Z) + (acc_D*ud);
+                }
+                
                 Z = Z_next;
+                
             }
 //			printf("A  = \r\n");
 //			A.display();
@@ -176,6 +219,25 @@ Matrix ESO::Iterate() {
 
 void ESO::set_compensation_signal(const float sig) {
 	compensation_signal = sig;
+}
+
+float ESO::set_st_need_acc_threashold(const float &need_acc_threashold_) {
+    fl_param_update = true;
+    return st_need_acc_threashold = need_acc_threashold_;
+}
+
+float ESO::set_st_disturbance_est_gain(const float &disturbance_est_gain_) { 
+    fl_param_update = true;
+    return st_disturbance_est_gain = disturbance_est_gain_;
+} 
+
+void ESO::check_for_param_update() {
+    if ( fl_param_update ) {
+        fl_param_update = false;
+        need_acc_threashold = st_disturbance_est_gain;
+        disturbance_est_gain = st_disturbance_est_gain;
+        LADRC_based_current_DESO_init();        
+    }
 }
 
 controller::controller() : tp(){
