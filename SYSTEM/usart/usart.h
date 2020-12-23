@@ -93,6 +93,7 @@ void COMMUNICATION_Cmd_WriteParam_ACK( u8 sta );
 void uart_init(u32 bound);
 void usart3_init(u32 bound);
 void USART2_Init(u32 bound);
+void USART3_Init(u32 bound);
 void Usart_SendByte(uint8_t data);
 void Usart_SendByte_communication(uint8_t data);
 

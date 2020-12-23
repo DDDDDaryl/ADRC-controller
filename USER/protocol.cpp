@@ -142,6 +142,11 @@ uint8_t communication_protocol::PC_send_buf_write(const uint8_t& data) {
 
 float communication_protocol::parse_IC_msg() {
     it_IC_r = IC_rec_buf.begin();
+    
+    while (it_IC_r != IC_rec_buf.end() && *it_IC_r != 0xeb) {
+		++it_IC_r;
+	}
+    
     if(*it_IC_r != 0xeb){
         printf("Invalid Header.\r\n");
         return false;
@@ -169,9 +174,9 @@ float communication_protocol::parse_IC_msg() {
 bool communication_protocol::parse_PC_msg() {
     
     it_PC_r = PC_rec_buf.begin();
-	for (auto it = PC_rec_buf.begin(); it != PC_rec_buf.end(); ++it)
-		printf("%02x ", *it);
-	printf("\r\n");
+//	for (auto it = PC_rec_buf.begin(); it != PC_rec_buf.end(); ++it)
+//		printf("%02x ", *it);
+//	printf("\r\n");
 	
 	while (it_PC_r != PC_rec_buf.end() && *it_PC_r != 0xeb) {
 		++it_PC_r;

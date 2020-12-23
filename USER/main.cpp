@@ -17,6 +17,8 @@ using namespace chrono;
 extern u16 USART_RX_STA;
 extern u8  Tim2Flag;
 
+extern u8 debug_fl;
+
 int main(){
 /*----------------------类实例化-----------------------*/
     control_system sys;
@@ -36,6 +38,7 @@ int main(){
 	delay_init(168);		//延时初始化
 	uart_init(115200);	//串口初始化波特率为115200
 	USART2_Init(115200);
+    USART3_Init(115200);
 	MCU1UART_DMA_cinfig();                         //串口DMA通信初始化
 
 	LED_Init();		  		//初始化与LED连接的硬件接口
@@ -98,12 +101,14 @@ int main(){
                 
                 continue;
             }
+//            printf("IC_flag: %d\r\n.", C__get_IC_parse_flag());
+            
 
-            if(C__get_IC_parse_flag()){//直接更新reference
+            if(C__get_IC_parse_flag() == true){//直接更新reference
                 printf("IC Message received.\r\n");
                 USART_RX_STA = 0;
                 C__set_IC_parse_flag(false);
-                printf("reference = %#1.0f\r\n", C__parse_IC_msg());
+                printf("reference = %#1.6f\r\n", C__parse_IC_msg());
                 C__parse_IC_msg();
             }
             if(Tim2Flag==1) {

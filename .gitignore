@@ -1,0 +1,5 @@
+.idea/
+/OBJ/*
+!/OBJ/*.hex
+
+
