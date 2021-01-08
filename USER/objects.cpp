@@ -8,7 +8,7 @@
 
 
 bool control_system::sys_running_state          = true;
-float control_system::Sample_Rate_of_Sensor_Hz  = 50;
+float control_system::Sample_Rate_of_Sensor_Hz  = 100;
 float control_system::Sample_Rate_Hz            = 100;
 float control_system::LADRC_wc                  = 10;
 float control_system::LADRC_wo                  = 100;
@@ -253,7 +253,7 @@ controller::controller() : tp(){
 uint8_t controller::Parameter_init() {
     switch(control_system::controller_type){
         case LADRC:{
-			tp.init( pow(control_system::get_LADRC_wc_bar() / 1.14, 2), 1.0f / control_system::get_Sample_Rate_Hz() );
+			tp.init( control_system::get_LADRC_wc_bar(), 1.0f / control_system::get_Sample_Rate_Hz() );
             Transient_profile = control_system::reference;
             Output_Error = 0;
             LADRC_Kp = (float)pow(control_system::LADRC_wc, 2);
@@ -429,4 +429,3 @@ bool control_system::is_rst_needed() {
 void control_system::clear_rst_flag() {
     reset_flag = false;
 }
-

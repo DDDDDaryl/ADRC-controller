@@ -18,22 +18,26 @@ private:
 	float td_x2;
 	float td_r;
 	float td_h;
+    float td_h0;
 
 public:
-	transient_profile() : td_x1(0), td_x2(0), td_r(4), td_h(0.02) {}
+	transient_profile() : td_x1(0), td_x2(0), td_r(4), td_h(0.01), td_h0(0.02) {}
 	~transient_profile() = default;
 	
 	void init(float r, float h) {
 		td_r = r;
 		td_h = h;
+        td_h0 = 2 * td_h;
 	}
 	
-	void init(float r) {
-		td_r = r;
+	void init(float h) {
+		td_h = h;
+        td_h0 = 2 * td_h;
 	}
+    
 	float iter(float v) {
 		td_x1 = td_x1 + td_h * td_x2;
-		td_x2 = td_x2 + td_h * fst(td_x1, td_x2, v, td_r, td_h);
+		td_x2 = td_x2 + td_h * fst(td_x1, td_x2, v, td_r, td_h0);
 		return td_x1;
 	}
 	

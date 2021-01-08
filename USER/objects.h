@@ -208,6 +208,11 @@ public:
 	static float set_sigma(const float& sigma_);
 	static float set_bl(const float& bl_);
 	static float set_br(const float& br_);
+    
+    void check_for_update();
+
+public:    
+    transient_profile tp;
 	
 private:
     float LADRC_Kp;
@@ -217,8 +222,7 @@ private:
     float Transient_profile;
     float u0;
     Matrix transfer_mat;
-	transient_profile tp;
-
+	
 	static float bl;
 	static float br;
 	float ml = 1.0;
@@ -247,9 +251,13 @@ inline uint8_t control_system::set_open_loop_input_type(const uint8_t &type) {
     return open_loop_input_type = type;
 }
 inline float control_system::set_Sample_Rate_Hz(const float& fs){
+    if (fs != Sample_Rate_Hz)
+        reset_flag = true;
     return Sample_Rate_Hz = fs;
 }
 inline float control_system::set_Sample_Rate_of_Sensor_Hz(const float& fs){
+    if (fs != Sample_Rate_of_Sensor_Hz)
+        reset_flag = true;
     return Sample_Rate_of_Sensor_Hz = fs;
 }
 inline uint8_t control_system::set_run_time(const uint8_t& time) {

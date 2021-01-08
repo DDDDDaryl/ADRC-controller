@@ -70,6 +70,7 @@ int main(){
             C__parse_PC_msg();
             /*增加更新采样周期*/
             sample_period_in_ms = 1000 / control_system::get_Sample_Rate_Hz();
+//            ctrl.tp.init(sample_period_in_ms / 1000);
         }
         
         /*每隔1s发送心跳包（避免上位机线程等待）*/
@@ -98,6 +99,7 @@ int main(){
                 
                 /*增加更新采样周期*/
                 sample_period_in_ms = 1000 / control_system::get_Sample_Rate_Hz();
+//                ctrl.tp.init(sample_period_in_ms / 1000);
                 
                 continue;
             }
